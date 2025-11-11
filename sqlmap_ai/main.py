@@ -121,7 +121,11 @@ def build_sqlmap_options(args) -> list:
     # Add threads
     threads = args.threads or config.sqlmap.default_threads
     options.append(f"--threads={threads}")
-    
+
+    # Add specific parameter to test
+    if hasattr(args, 'test_parameter') and args.test_parameter:
+        options.append(f"-p {args.test_parameter}")
+
     # Add tamper scripts
     if args.tamper:
         options.append(f"--tamper={args.tamper}")
@@ -148,13 +152,17 @@ def run_enhanced_adaptive_mode(runner, target_url, user_timeout, interactive_mod
     """Run enhanced adaptive mode with AI integration"""
     print_info("Starting enhanced adaptive testing sequence...")
     print_info("This mode integrates AI analysis and advanced evasion techniques")
-    
+
+    # Get test parameter if specified
+    test_param = getattr(args, 'test_parameter', None)
+
     # Run base adaptive testing
     result = run_adaptive_test_sequence(
         runner=runner,
         target_url=target_url,
         interactive_mode=interactive_mode,
-        timeout=user_timeout
+        timeout=user_timeout,
+        test_parameter=test_param
     )
     
     # Enhance with AI analysis if available
@@ -263,33 +271,123 @@ async def enhance_with_ai_analysis(result, target_url, args):
 def generate_enhanced_reports(result, args):
     """Generate enhanced reports with multiple formats"""
     print_info("Creating beautiful HTML report...")
-    
+
     config = get_config()
     output_format = args.output_format or "html"
     output_dir = args.output_dir or "reports"
-    
+
     # Ensure output directory exists
     import os
     os.makedirs(output_dir, exist_ok=True)
-    
+
     try:
         timestamp = int(time.time())
         output_path = os.path.join(output_dir, f"sqlmap_report_{timestamp}.html")
-        
+
+        # Transform adaptive test result to report format
+        scan_data = _transform_result_for_report(result, timestamp)
+
         report_path = report_generator.generate_comprehensive_report(
-            scan_data=result,
+            scan_data=scan_data,
             output_format=output_format,
             output_path=output_path
         )
-        
+
         if report_path:
             print_success(f"Beautiful HTML report generated: {report_path}")
             print_info("Open the HTML file in your browser to view the interactive report")
         else:
             print_warning("Failed to generate HTML report")
-                
+
     except Exception as e:
         print_error(f"Report generation failed: {e}")
+
+
+def _transform_result_for_report(result, timestamp):
+    """Transform adaptive test result into format expected by HTML reporter"""
+    # If result already has scan_info (from non-adaptive mode), return as is
+    if "scan_info" in result:
+        if "timestamp" not in result:
+            result["timestamp"] = timestamp
+        return result
+
+    # Extract info from scan_history to build scan_info
+    scan_history = result.get("scan_history", [])
+
+    # Aggregate data from all steps
+    all_vulns = set()
+    all_databases = set()
+    all_tables = []
+    all_columns = {}
+    all_techniques = set()
+    all_payloads = []
+    dbms = "Unknown"
+    waf_detected = False
+    raw_results = []
+
+    for step in scan_history:
+        step_result = step.get("result", {})
+
+        # Collect vulnerable parameters
+        vulns = step_result.get("vulnerable_parameters", [])
+        all_vulns.update(vulns)
+
+        # Collect databases
+        databases = step_result.get("databases", [])
+        all_databases.update(databases)
+
+        # Collect tables
+        tables = step_result.get("tables", [])
+        all_tables.extend([t for t in tables if t not in all_tables])
+
+        # Collect columns
+        columns = step_result.get("columns", {})
+        all_columns.update(columns)
+
+        # Collect techniques
+        techniques = step_result.get("techniques", [])
+        all_techniques.update(techniques)
+
+        # Collect payloads
+        payloads = step_result.get("payloads", [])
+        all_payloads.extend(payloads[:3])  # Add up to 3 payloads per step
+
+        # Get DBMS
+        if step_result.get("dbms") and step_result["dbms"] != "Unknown":
+            dbms = step_result["dbms"]
+
+        # Check WAF
+        if step_result.get("waf_detected"):
+            waf_detected = True
+
+        # Collect raw result
+        if step_result.get("raw_result"):
+            raw_results.append(step_result["raw_result"])
+
+    # Build scan_info structure
+    scan_info = {
+        "vulnerable_parameters": list(all_vulns),
+        "databases": list(all_databases),
+        "tables": all_tables,
+        "columns": all_columns,
+        "techniques": list(all_techniques),
+        "payloads": all_payloads[:10],  # Limit to 10 payloads
+        "dbms": dbms,
+        "waf_detected": waf_detected,
+        "raw_result": "\n\n---\n\n".join(raw_results),
+        "os": "Unknown",
+        "web_app": [],
+        "url": ""
+    }
+
+    # Return in expected format
+    return {
+        "timestamp": timestamp,
+        "scan_info": scan_info,
+        "scan_history": scan_history,
+        "success": result.get("success", False),
+        "message": result.get("message", "")
+    }
 
 
 def run_adaptive_mode(runner, target_url, user_timeout, interactive_mode):

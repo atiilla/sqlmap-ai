@@ -4,17 +4,52 @@ An AI-powered wrapper around SQLMap that makes SQL injection testing more access
 
 ## Features
 
-- AI-assisted SQL injection testing
-- Automated result analysis and next step suggestions
-- User-friendly output and reporting
-- **NEW: Adaptive step-by-step testing with DBMS-specific optimizations and WAF bypass**
-- **NEW: Ollama support for local AI analysis**
+### Core Features
+- **AI-Assisted Testing** - Intelligent vulnerability analysis and recommendations
+- **Adaptive Testing** - Step-by-step testing that adapts to target responses
+- **Enhanced HTML Reports** - Beautiful, detailed reports with vulnerability details
+- **Parameter Targeting** - Test specific parameters with `-p` option (like original SQLMap)
+- **WAF Bypass** - Automatic tamper script selection for firewall evasion
+- **Database Enumeration** - Complete database, table, and column discovery
+- **Request File Support** - Test from Burp Suite, ZAP, or browser captures
+
+### AI Providers
+- **Groq** - Fastest AI analysis (recommended)
+- **OpenAI** - GPT-4 powered analysis
+- **Anthropic Claude** - Advanced reasoning
+- **Ollama** - Local, private AI (no cloud required)
+
+### New in v2.0.5
+- [x] **Parameter Selection** - Target specific parameters with `-p id,username`
+- [x] **Enhanced Reports** - Detailed HTML reports with tables, columns, and payloads
+- [x] **Global SQLMap** - Uses your system's SQLMap installation
+- [x] **Bug Fixes** - Improved database tracking and report generation
 
 <img src="sqlmap.gif"/>
 
 ## Quick Start
 
-### Step 1: Install SQLMap AI
+### Step 1: Install SQLMap (Prerequisite)
+
+First, install SQLMap globally on your system:
+
+```bash
+# Kali/Debian/Ubuntu
+sudo apt install sqlmap
+
+# macOS
+brew install sqlmap
+
+# Or from source
+git clone https://github.com/sqlmapproject/sqlmap.git
+cd sqlmap
+sudo python setup.py install
+
+# Verify installation
+sqlmap --version
+```
+
+### Step 2: Install SQLMap AI
 
 ```bash
 # Clone the repository
@@ -24,13 +59,14 @@ cd sqlmap-ai
 # Install the package
 pip install -e .
 
-# Run installation check (sets up SQLMap and creates config files)
-sqlmap-ai --install-check
-
+# Or install from PyPI
 pip install sqlmap-ai
+
+# Run installation check (creates config files)
+sqlmap-ai --install-check
 ```
 
-### Step 2: Configure AI Providers
+### Step 3: Configure AI Providers
 
 Choose one or more AI providers to use:
 
@@ -71,7 +107,7 @@ ENABLE_OLLAMA=true
 OLLAMA_MODEL=llama3.2
 ```
 
-### Step 3: Run Configuration Wizard
+### Step 4: Run Configuration Wizard
 
 ```bash
 # Interactive setup
@@ -84,7 +120,7 @@ This will:
 - Configure security settings
 - Set up SQLMap options
 
-### Step 4: Test Your Setup
+### Step 5: Test Your Setup
 
 ```bash
 # Check if everything is working
@@ -164,13 +200,22 @@ username=admin&password=test
 
 ```bash
 # Adaptive testing (recommended)
-sqlmap-ai --adaptive
+sqlmap-ai --enhanced --adaptive -u "http://example.com/page.php?id=1"
+
+# Test specific parameter only
+sqlmap-ai --enhanced -u "http://example.com/page.php?id=1&name=test" -p id
 
 # Simple mode (basic SQLMap without AI)
 sqlmap-ai --simple -u "http://example.com/page.php?id=1"
 
 # Enhanced mode with custom options
 sqlmap-ai --enhanced -u "http://example.com/page.php?id=1" --level 3 --risk 2
+
+# Test with aggressive settings
+sqlmap-ai --enhanced --aggressive -u "http://example.com/page.php?id=1"
+
+# Stealth mode with slower, more evasive testing
+sqlmap-ai --enhanced --stealth -u "http://example.com/page.php?id=1"
 ```
 
 ### AI Provider Selection
@@ -189,19 +234,45 @@ sqlmap-ai -u "http://example.com/page.php?id=1" --ai-provider openai
 sqlmap-ai -u "http://example.com/page.php?id=1" --ai-provider auto
 ```
 
+### Parameter-Specific Testing
+
+Test only specific parameters to save time and focus your testing:
+
+```bash
+# Test only the 'id' parameter
+sqlmap-ai --enhanced -u "http://example.com/page.php?id=1&name=test" -p id
+
+# Test multiple specific parameters
+sqlmap-ai --enhanced -u "http://example.com/login?user=admin&pass=123&token=abc" -p user,pass
+
+# Test with request file and specific parameter
+sqlmap-ai --enhanced -r request.txt -p username
+
+# Adaptive testing on specific parameter
+sqlmap-ai --enhanced --adaptive -r request.txt -p id
+```
+
+**Benefits:**
+- **Faster Testing** - Skip irrelevant parameters
+- **Focused Analysis** - Concentrate on known vulnerable parameters
+- **Cost Efficient** - Reduce AI API calls for large forms
+
 ### Complete Testing Workflow
 
 ```bash
 # 1. Basic scan with URL
-sqlmap-ai -u "http://example.com/page.php?id=1"
+sqlmap-ai --enhanced -u "http://example.com/page.php?id=1"
 
-# 2. Enhanced scan with request file
+# 2. Test specific parameter only
+sqlmap-ai --enhanced -u "http://example.com/page?id=1&name=test" -p id
+
+# 3. Enhanced scan with request file
 sqlmap-ai --enhanced --adaptive -r captured_request.txt
 
-# 3. Advanced scan with custom options
+# 4. Advanced scan with custom options
 sqlmap-ai --enhanced -r request.txt --level 4 --risk 3 --threads 10
 
-# 4. Simple mode for quick testing
+# 5. Simple mode for quick testing
 sqlmap-ai --simple -r request.txt --batch
 ```
 
@@ -225,12 +296,22 @@ sqlmap-ai --enhanced --adaptive -r request.txt --ai-provider groq
 - AI-powered vulnerability analysis
 - Adaptive testing strategies
 - WAF evasion techniques
-- Beautiful HTML reports
+- **Beautiful HTML reports** with comprehensive details
 - Risk assessment and remediation guidance
 - Interactive CLI with progress tracking
 - Multiple AI providers (Groq, OpenAI, Anthropic, Ollama)
 - Advanced configuration management
-- Request file support (NEW!)
+- Request file support
+- Parameter-specific testing with `-p` option
+
+**Enhanced HTML Reports Include:**
+- [x] **Vulnerability Details** - Complete parameter analysis with injection payloads
+- [x] **Database Information** - All discovered databases with tables and columns
+- [x] **Scan History** - Detailed step-by-step findings with sample payloads
+- [x] **Risk Assessment** - Overall risk level and vulnerability counts
+- [x] **AI Recommendations** - Smart suggestions for remediation
+- [x] **Interactive Charts** - Visual representation of scan results
+- [x] **Export Ready** - Professional format for security reports
 
 ### Simple Mode
 Basic SQL injection testing without AI features:
@@ -267,20 +348,44 @@ sqlmap-ai --enhanced --adaptive -r request.txt --ai-provider groq
 ```
 
 **Adaptive Steps:**
-1. **🟢 Initial Assessment** - Check for SQL injection vulnerabilities
-2. **🟠 DBMS Identification** - Detect database type (MySQL, PostgreSQL, etc.)
-3. **🔴 Enhanced Testing** - Try more aggressive techniques
-4. **🟣 Data Extraction** - Extract valuable data from identified tables
-5. **🤖 AI Analysis** - Get AI recommendations for next steps
+1. **Initial Assessment** - Quick vulnerability check
+   - Tests for SQL injection with basic techniques
+   - Identifies vulnerable parameters
+   - Discovers initial database information
+
+2. **DBMS Identification** - Detect specific database type
+   - Identifies MySQL, PostgreSQL, Oracle, MSSQL, etc.
+   - Enables database-specific attack optimization
+   - Detects WAF/IPS presence
+
+3. **Enhanced Database Testing** - Deep database enumeration
+   - Enumerates all databases and tables
+   - Extracts table structures and column names
+   - Adapts based on discovered schema
+
+4. **Data Extraction** - Extract sensitive information
+   - Dumps data from identified tables
+   - Targets high-value tables (users, credentials, etc.)
+   - Uses optimized extraction techniques
+
+5. **Enhanced Testing** - Aggressive vulnerability testing
+   - Increases risk and level settings
+   - Tests for advanced injection types
+   - Attempts privilege escalation techniques
+
+6. **Alternative Testing** - Test additional attack vectors
+   - POST parameters and request body
+   - Cookies and session data
+   - HTTP headers (User-Agent, Referer, etc.)
 
 ## AI Providers Comparison
 
 | Provider | Setup | Speed | Privacy | Cost |
 |----------|-------|-------|---------|------|
-| **Groq** | API Key | ⚡ Fastest | Cloud | Free tier available |
-| **OpenAI** | API Key | ⚡ Fast | Cloud | Pay per use |
-| **Anthropic** | API Key | ⚡ Fast | Cloud | Pay per use |
-| **Ollama** | Local install | Fast | 🔒 Local | Free |
+| **Groq** | API Key | Fastest | Cloud | Free tier available |
+| **OpenAI** | API Key | Fast | Cloud | Pay per use |
+| **Anthropic** | API Key | Fast | Cloud | Pay per use |
+| **Ollama** | Local install | Fast | Local | Free |
 
 ## Configuration Files
 
@@ -339,8 +444,11 @@ ui:
 - Verify `.env` has `ENABLE_OLLAMA=true`
 
 **3. "SQLMap not found"**
-- Run `sqlmap-ai --install-check` to install SQLMap
-- Or install manually: `pip install sqlmap`
+- Install SQLMap globally using one of these methods:
+  - **Kali/Debian/Ubuntu:** `sudo apt install sqlmap`
+  - **macOS:** `brew install sqlmap`
+  - **From source:** `git clone https://github.com/sqlmapproject/sqlmap.git && cd sqlmap && sudo python setup.py install`
+- Verify installation: `sqlmap --version`
 
 **4. "Configuration issues"**
 - Run `sqlmap-ai --config-wizard` to fix setup
@@ -370,22 +478,88 @@ sqlmap-ai --enhanced --help
 sqlmap-ai --simple --help
 ```
 
+## Command-Line Options
+
+### Target Specification
+```bash
+-u, --url URL              Target URL (e.g., "http://example.com/page?id=1")
+-r, --request FILE         Load HTTP request from file (Burp/ZAP/Browser)
+```
+
+### Parameter Testing
+```bash
+-p, --param PARAMS         Test specific parameter(s) (comma-separated)
+                          Examples: -p id | -p id,username,token
+```
+
+### Scanning Options
+```bash
+--adaptive                 Use adaptive step-by-step testing
+--aggressive               Aggressive testing (risk=3, level=5)
+--stealth                  Stealth mode (slower, more evasive)
+--timeout SECONDS          Scan timeout in seconds (default: 120)
+--threads NUM              Number of threads 1-20 (default: 5)
+--risk LEVEL               Risk level 1-3 (default: 1)
+--level LEVEL              Test level 1-5 (default: 1)
+```
+
+### AI Configuration
+```bash
+--ai-provider PROVIDER     AI provider: groq|openai|anthropic|ollama|auto
+--disable-ai               Disable AI analysis
+--ollama-model MODEL       Specific Ollama model to use
+```
+
+### WAF Evasion
+```bash
+--tamper SCRIPTS           Tamper scripts (comma-separated)
+--auto-tamper              Auto-select tamper scripts based on WAF
+--random-agent             Use random User-Agent
+```
+
+### Output Options
+```bash
+--output-dir DIR           Output directory for reports (default: reports)
+--output-format FORMAT     Output format: html|json|text
+--save-json                Save results as JSON
+```
+
+### Configuration
+```bash
+--config-wizard            Run interactive configuration wizard
+--check-providers          Check AI provider availability
+--list-ollama-models       List available Ollama models
+--install-check            Check installation and create config files
+```
+
 ## Advanced Features
 
 ### Adaptive Testing Mode
-Automatically adapts testing strategy based on target:
+Automatically adapts testing strategy based on target response and discovered information:
 
 ```bash
-sqlmap-ai --adaptive
+# Enable adaptive mode
+sqlmap-ai --enhanced --adaptive -u "http://example.com/page.php?id=1"
+
+# With request file
+sqlmap-ai --enhanced --adaptive -r request.txt
+
+# With specific parameter
+sqlmap-ai --enhanced --adaptive -r request.txt -p id
 ```
 
-This mode:
-1. **Initial Assessment** - Check for SQL injection vulnerabilities
-2. **DBMS Identification** - Detect database type
-3. **DBMS-Specific Attacks** - Use optimized techniques
-4. **WAF Bypass** - Automatically select tamper scripts
-5. **Data Extraction** - Extract sensitive information
-6. **Alternative Testing** - Test POST, cookies, headers
+**How Adaptive Testing Works:**
+
+The adaptive engine intelligently sequences through 6 testing phases, adjusting strategy based on what it discovers:
+
+1. **Initial Assessment** - Quick vulnerability identification
+2. **DBMS Identification** - Database fingerprinting and WAF detection
+3. **Enhanced Database Testing** - Complete schema enumeration
+4. **Data Extraction** - Targeted data dumping from sensitive tables
+5. **Enhanced Testing** - Aggressive techniques if databases found
+6. **Alternative Testing** - Additional attack vectors (POST, cookies, headers)
+
+Each step builds on previous discoveries, ensuring efficient and thorough testing while minimizing unnecessary requests.
 
 ### Ollama Model Selection
 
@@ -405,87 +579,13 @@ Popular models:
 - **mistral** - Fast and efficient
 - **qwen2.5** - Good reasoning capabilities
 
-### Result:
-```json
-{
-  "timestamp": 1755896586,
-  "scan_info": {
-    "vulnerable_parameters": [
-      "cat"
-    ],
-    "techniques": [
-      "MySQL"
-    ],
-    "databases": [],
-    "tables": [],
-    "columns": {},
-    "dbms": "back-end DBMS: MySQL >= 5.6",
-    "os": "Unknown",
-    "waf_detected": false,
-    "web_app": [],
-    "payloads": [],
-    "raw_result": "[+] the following parameters are vulnerable to SQL injection:\n    Parameter: cat (GET)\n[+] back-end DBMS: back-end DBMS: MySQL >= 5.6\n[+] banner: 8.0.22-0ubuntu0.20.04.2",
-    "url": "",
-    "extracted": {}
-  },
-  "scan_history": [
-    {
-      "step": "initial_reconnaissance",
-      "command": "sqlmap -u http://testphp.vulnweb.com/listproducts.php?cat=1 --fingerprint --dbs",
-      "result": {
-        "vulnerable_parameters": [
-          "cat"
-        ],
-        "techniques": [
-          "MySQL"
-        ],
-        "databases": [
-          "acuart",
-          "information_schema"
-        ],
-        "tables": [],
-        "columns": {},
-        "dbms": "back-end DBMS: MySQL >= 5.6",
-        "os": "Unknown",
-        "waf_detected": false,
-        "web_app": [],
-        "payloads": [],
-        "raw_result": "[+] the following parameters are vulnerable to SQL injection:\n    Parameter: cat (GET)\n[+] back-end DBMS: back-end DBMS: MySQL >= 5.6\n[+] banner: 8.0.22-0ubuntu0.20.04.2\n[+] available databases [2]:\n[*] acuart\n[*] information_schema",
-        "url": "",
-        "extracted": {}
-      }
-    },
-    {
-      "step": "follow_up_scan",
-      "command": "sqlmap -u http://testphp.vulnweb.com/listproducts.php?cat=1 ['-D acuart --tables', '-D acuart --columns', '-D acuart -T users --dump']",
-      "result": {
-        "vulnerable_parameters": [
-          "cat"
-        ],
-        "techniques": [
-          "MySQL"
-        ],
-        "databases": [],
-        "tables": [],
-        "columns": {},
-        "dbms": "back-end DBMS: MySQL >= 5.6",
-        "os": "Unknown",
-        "waf_detected": false,
-        "web_app": [],
-        "payloads": [],
-        "raw_result": "[+] the following parameters are vulnerable to SQL injection:\n    Parameter: cat (GET)\n[+] back-end DBMS: back-end DBMS: MySQL >= 5.6\n[+] banner: 8.0.22-0ubuntu0.20.04.2",
-        "url": "",
-        "extracted": {}
-      }
-    }
-  ]
-}
-```
-
 ## Requirements
 
 - Python 3.8+
-- SQLMap (installed automatically)
+- SQLMap (must be installed globally on your system)
+  - Kali/Debian/Ubuntu: `sudo apt install sqlmap`
+  - macOS: `brew install sqlmap`
+  - From source: [github.com/sqlmapproject/sqlmap](https://github.com/sqlmapproject/sqlmap)
 - Internet connection (for cloud AI providers)
 - 2GB+ RAM (for Ollama local models)
 

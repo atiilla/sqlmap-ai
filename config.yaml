@@ -39,6 +39,13 @@ config_version: '1.0'
 custom_settings: {}
 debug: false
 log_level: INFO
+logging:
+  audit_log_file: sqlmap_ai_audit.log
+  backup_count: 5
+  enable_file_logging: true
+  log_directory: logs
+  main_log_file: sqlmap_ai.log
+  max_log_size_mb: 50
 reporting:
   auto_save: true
   compress_reports: false
@@ -69,13 +76,6 @@ sqlmap:
   max_risk: 2
   max_threads: 20
   max_timeout: 600
-  timeout_settings:
-    initial_scan: 120
-    follow_up_scan: 300
-    data_extraction: 240
-    complex_scan: 480
-    adaptive_multiplier: 2.0
-    max_adaptive_timeout: 600
 ui:
   confirm_dangerous_operations: true
   enable_colors: true
@@ -84,10 +84,3 @@ ui:
   show_banner: true
   verbose_output: false
 version: 2.0.0
-logging:
-  log_directory: logs
-  audit_log_file: sqlmap_ai_audit.log
-  main_log_file: sqlmap_ai.log
-  enable_file_logging: true
-  max_log_size_mb: 50
-  backup_count: 5

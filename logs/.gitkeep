@@ -1,2 +1,0 @@
-# This file ensures the logs directory is preserved in git
-# Log files in this directory are ignored by .gitignore

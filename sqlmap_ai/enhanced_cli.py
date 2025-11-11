@@ -12,7 +12,6 @@ import json
 from dataclasses import asdict
 
 try:
-    import click
     from rich.console import Console
     from rich.table import Table
     from rich.panel import Panel
@@ -23,7 +22,6 @@ try:
     HAS_RICH = True
 except ImportError:
     HAS_RICH = False
-    click = None
 
 from sqlmap_ai.config_manager import config_manager, get_config
 from sqlmap_ai.security_manager import security_manager
@@ -163,7 +161,12 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             choices=[1, 2, 3, 4, 5],
             help='Test level (1-5, default from config)'
         )
-        
+        scan_group.add_argument(
+            '-p', '--param',
+            dest='test_parameter',
+            help='Specific parameter(s) to test (comma-separated)'
+        )
+
         # WAF Evasion
         evasion_group = parser.add_argument_group('WAF Evasion')
         evasion_group.add_argument(

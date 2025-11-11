@@ -155,47 +155,6 @@ class HTMLReporter:
             return "MEDIUM"
         else:
             return "LOW"
-    
-    def generate_remediation_guidance(self, vulnerabilities: List[Dict[str, Any]]) -> Dict[str, List[str]]:
-        """Generate remediation guidance based on vulnerabilities"""
-        
-        immediate_actions = [
-            "Implement parameterized queries/prepared statements",
-            "Apply input validation and sanitization",
-            "Use stored procedures with proper parameter handling",
-            "Implement least privilege database access"
-        ]
-        
-        long_term_fixes = [
-            "Deploy Web Application Firewall (WAF)",
-            "Implement database activity monitoring",
-            "Regular security code reviews",
-            "Automated security testing in CI/CD pipeline",
-            "Database encryption at rest and in transit"
-        ]
-        
-        secure_coding_practices = [
-            "Use ORM frameworks with built-in SQL injection protection",
-            "Validate and escape all user inputs",
-            "Implement proper error handling without information disclosure",
-            "Use whitelist input validation",
-            "Regular dependency updates and security patches"
-        ]
-        
-        monitoring_recommendations = [
-            "Implement real-time database monitoring",
-            "Set up alerts for unusual query patterns",
-            "Log all database access attempts",
-            "Regular penetration testing",
-            "Vulnerability assessments"
-        ]
-        
-        return {
-            'immediate_actions': immediate_actions,
-            'long_term_fixes': long_term_fixes,
-            'secure_coding_practices': secure_coding_practices,
-            'monitoring_recommendations': monitoring_recommendations
-        }
 
     def generate_html_report(self, scan_data: Dict[str, Any], output_path: Optional[str] = None) -> str:
         """Generate a beautiful HTML report"""
@@ -226,9 +185,6 @@ class HTMLReporter:
         dbms = scan_data.get('scan_info', {}).get('dbms', 'Unknown')
         raw_result = scan_data.get('scan_info', {}).get('raw_result', '')
         
-        # Generate remediation guidance
-        remediation = self.generate_remediation_guidance(assessed_vulnerabilities)
-        
         # Calculate scan summary
         scan_summary = self._generate_scan_summary(scan_data, assessed_vulnerabilities)
         
@@ -240,7 +196,6 @@ class HTMLReporter:
             dbms=dbms,
             raw_result=raw_result,
             scan_data=scan_data,
-            remediation=remediation,
             scan_summary=scan_summary
         )
         
@@ -293,8 +248,7 @@ class HTMLReporter:
     
     def _create_html_template(self, vulnerabilities: List[Dict[str, Any]], techniques: List[str], 
                             databases: List[str], dbms: str, raw_result: str, 
-                            scan_data: Dict[str, Any], remediation: Dict[str, List[str]], 
-                            scan_summary: Dict[str, Any]) -> str:
+                            scan_data: Dict[str, Any], scan_summary: Dict[str, Any]) -> str:
         """Create the HTML template with Tailwind CSS"""
         
         # Use scan summary statistics
@@ -393,12 +347,10 @@ class HTMLReporter:
 
         <!-- Vulnerabilities Section -->
         {self._generate_vulnerabilities_section(vulnerabilities)}
-        
-        <!-- Remediation Guidance -->
-        {self._generate_remediation_section(remediation)}
+       
 
         <!-- Database Information -->
-        {self._generate_database_section(databases, dbms)}
+        {self._generate_database_section(databases, dbms, scan_data)}
 
         <!-- Scan History -->
         {self._generate_scan_history_section(scan_data.get('scan_history', []))}
@@ -446,112 +398,6 @@ class HTMLReporter:
         """
         
         return html
-    
-    def _generate_remediation_section(self, remediation: Dict[str, List[str]]) -> str:
-        """Generate remediation guidance section"""
-        
-        immediate_actions = ""
-        for action in remediation.get('immediate_actions', []):
-            immediate_actions += f"""
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-red-500 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-gray-700">{action}</span>
-                </li>
-            """
-        
-        long_term_fixes = ""
-        for fix in remediation.get('long_term_fixes', []):
-            long_term_fixes += f"""
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-blue-500 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-gray-700">{fix}</span>
-                </li>
-            """
-        
-        secure_coding = ""
-        for practice in remediation.get('secure_coding_practices', []):
-            secure_coding += f"""
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-green-500 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-gray-700">{practice}</span>
-                </li>
-            """
-        
-        monitoring = ""
-        for rec in remediation.get('monitoring_recommendations', []):
-            monitoring += f"""
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-purple-500 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-gray-700">{rec}</span>
-                </li>
-            """
-        
-        return f"""
-        <div class="mb-8">
-            <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">🛡️ Remediation Guidance</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-red-800 mb-3 flex items-center">
-                            <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                            </svg>
-                            Immediate Actions
-                        </h3>
-                        <ul class="space-y-2">
-                            {immediate_actions}
-                        </ul>
-                    </div>
-                    
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                            <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
-                            </svg>
-                            Long-term Fixes
-                        </h3>
-                        <ul class="space-y-2">
-                            {long_term_fixes}
-                        </ul>
-                    </div>
-                    
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-green-800 mb-3 flex items-center">
-                            <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                            Secure Coding Practices
-                        </h3>
-                        <ul class="space-y-2">
-                            {secure_coding}
-                        </ul>
-                    </div>
-                    
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                        <h3 class="text-lg font-semibold text-purple-800 mb-3 flex items-center">
-                            <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-                            </svg>
-                            Monitoring & Detection
-                        </h3>
-                        <ul class="space-y-2">
-                            {monitoring}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        """
     
     def _generate_vulnerabilities_section(self, vulnerabilities: List[Dict[str, Any]]) -> str:
         """Generate vulnerabilities section HTML"""
@@ -612,6 +458,12 @@ class HTMLReporter:
                                         <strong>Impact Score:</strong> {vuln.get('impact_score', 0)}/100
                                     </div>
                                 </div>
+                                {f'''
+                                <div class="mt-3 bg-gray-800 text-gray-100 p-3 rounded-lg">
+                                    <div class="text-xs font-semibold text-gray-300 mb-1">Sample Injection Payload:</div>
+                                    <code class="text-xs break-all">{vuln.get('payload', 'N/A')[:300]}{'' if len(vuln.get('payload', '')) <= 300 else '...'}</code>
+                                </div>
+                                ''' if vuln.get('payload') else ''}
                             </div>
                         </div>
                         <div class="flex-shrink-0">
@@ -637,24 +489,90 @@ class HTMLReporter:
         </div>
         """
     
-    def _generate_database_section(self, databases: List[str], dbms: str) -> str:
-        """Generate database information section"""
-        if not databases:
+    def _generate_database_section(self, databases: List[str], dbms: str, scan_data: Dict[str, Any] = None) -> str:
+        """Generate database information section with tables and columns"""
+        if not databases and not (scan_data and scan_data.get('scan_history')):
             return ""
-        
+
+        # Collect all databases and tables from scan history
+        db_tables_map = {}
+        db_columns_map = {}
+
+        if scan_data:
+            for step in scan_data.get('scan_history', []):
+                result = step.get('result', {})
+                step_databases = result.get('databases', [])
+                step_tables = result.get('tables', [])
+                step_columns = result.get('columns', {})
+
+                # Associate tables with databases
+                for db in step_databases:
+                    if db not in db_tables_map:
+                        db_tables_map[db] = []
+
+                # Add tables found
+                if step_tables:
+                    # Try to find which database these tables belong to
+                    for db in step_databases:
+                        for table in step_tables:
+                            if table not in db_tables_map.get(db, []):
+                                if db not in db_tables_map:
+                                    db_tables_map[db] = []
+                                db_tables_map[db].append(table)
+
+                # Add columns found
+                if step_columns:
+                    for table, cols in step_columns.items():
+                        db_columns_map[table] = cols
+
+        # Ensure all databases are in the map even if no tables
+        for db in databases:
+            if db not in db_tables_map:
+                db_tables_map[db] = []
+
         db_items = ""
         for db in databases:
+            tables = db_tables_map.get(db, [])
+            table_list = ""
+
+            if tables:
+                for table in tables:
+                    columns = db_columns_map.get(table, [])
+                    col_count_text = f" ({len(columns)} columns)" if columns else ""
+                    column_details = ""
+
+                    if columns:
+                        column_items = ", ".join(columns[:10])  # Show first 10 columns
+                        if len(columns) > 10:
+                            column_items += f", ... ({len(columns) - 10} more)"
+                        column_details = f"""
+                            <div class="ml-6 mt-1 text-xs text-gray-500">
+                                Columns: {column_items}
+                            </div>
+                        """
+
+                    table_list += f"""
+                        <div class="ml-4 py-1">
+                            <span class="text-sm text-gray-700">📊 {table}{col_count_text}</span>
+                            {column_details}
+                        </div>
+                    """
+            else:
+                table_list = '<div class="ml-4 text-sm text-gray-500 italic">No tables enumerated</div>'
+
             db_items += f"""
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
-                    <div class="flex items-center">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                    <div class="flex items-center mb-2">
                         <svg class="h-4 w-4 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
                         </svg>
                         <span class="font-medium text-blue-800">{db}</span>
+                        <span class="ml-2 text-xs text-blue-600">({len(tables)} tables)</span>
                     </div>
+                    {table_list}
                 </div>
             """
-        
+
         return f"""
         <div class="mb-8">
             <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
@@ -666,7 +584,7 @@ class HTMLReporter:
                     </div>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-gray-800 mb-3">Available Databases</h3>
+                    <h3 class="font-semibold text-gray-800 mb-3">Available Databases & Tables</h3>
                     {db_items}
                 </div>
             </div>
@@ -674,42 +592,76 @@ class HTMLReporter:
         """
     
     def _generate_scan_history_section(self, scan_history: List[Dict[str, Any]]) -> str:
-        """Generate scan history section"""
+        """Generate scan history section with detailed findings"""
         if not scan_history:
             return ""
-        
+
         history_items = ""
         for i, step in enumerate(scan_history, 1):
             step_name = step.get('step', 'Unknown Step')
             command = step.get('command', '')
             result = step.get('result', {})
             vulns = result.get('vulnerable_parameters', [])
-            
+            databases = result.get('databases', [])
+            tables = result.get('tables', [])
+            columns = result.get('columns', {})
+            payloads = result.get('payloads', [])
+
+            # Build findings summary
+            findings = []
+            if vulns:
+                findings.append(f'<span class="text-red-600">• {len(vulns)} vulnerable parameter(s): {", ".join(vulns)}</span>')
+            if databases:
+                findings.append(f'<span class="text-blue-600">• {len(databases)} database(s): {", ".join(databases[:5])}{"..." if len(databases) > 5 else ""}</span>')
+            if tables:
+                findings.append(f'<span class="text-green-600">• {len(tables)} table(s): {", ".join(tables[:5])}{"..." if len(tables) > 5 else ""}</span>')
+            if columns:
+                col_count = sum(len(cols) for cols in columns.values())
+                findings.append(f'<span class="text-purple-600">• {col_count} column(s) in {len(columns)} table(s)</span>')
+            if payloads:
+                findings.append(f'<span class="text-yellow-600">• {len(payloads)} payload(s) tested</span>')
+
+            findings_html = "<br>".join(findings) if findings else '<span class="text-gray-500 italic">No significant findings</span>'
+
+            # Build payload section
+            payload_html = ""
+            if payloads and len(payloads) > 0:
+                sample_payload = payloads[0][:200] + "..." if len(payloads[0]) > 200 else payloads[0]
+                payload_html = f"""
+                    <div class="mt-2 bg-yellow-50 border border-yellow-200 rounded p-2">
+                        <div class="text-xs font-medium text-yellow-800 mb-1">Sample Payload:</div>
+                        <code class="text-xs text-yellow-900 break-all">{sample_payload}</code>
+                    </div>
+                """
+
             history_items += f"""
                 <div class="border-l-4 border-blue-500 pl-4 mb-6">
                     <div class="flex items-center mb-2">
-                        <div class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">
+                        <div class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold mr-3">
                             {i}
                         </div>
                         <h3 class="text-lg font-semibold text-gray-800">{step_name.replace('_', ' ').title()}</h3>
                     </div>
-                    <div class="ml-9">
+                    <div class="ml-11">
                         <div class="bg-gray-50 rounded-lg p-3 mb-3">
                             <div class="text-sm font-medium text-gray-700 mb-1">Command:</div>
-                            <code class="text-xs bg-gray-100 px-2 py-1 rounded">{command}</code>
+                            <code class="text-xs bg-gray-100 px-2 py-1 rounded break-all">{command}</code>
                         </div>
-                        <div class="text-sm text-gray-600">
-                            <div class="mb-1">Vulnerable Parameters: {len(vulns)}</div>
-                            <div>Techniques: {len(result.get('techniques', []))}</div>
+                        <div class="bg-white border border-gray-200 rounded-lg p-3">
+                            <div class="text-sm font-medium text-gray-700 mb-2">Findings:</div>
+                            <div class="text-sm">
+                                {findings_html}
+                            </div>
+                            {payload_html}
                         </div>
                     </div>
                 </div>
             """
-        
+
         return f"""
         <div class="mb-8">
             <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">📋 Scan History</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📋 Detailed Scan History</h2>
                 <div class="space-y-4">
                     {history_items}
                 </div>

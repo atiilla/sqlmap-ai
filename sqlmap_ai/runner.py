@@ -6,28 +6,81 @@ import requests
 import subprocess
 import traceback
 import atexit
+import shutil
 from typing import List, Dict, Any, Optional, Union
 from sqlmap_ai.ui import print_info, print_warning, print_error, print_success
 
 class SQLMapAPIRunner:
     def __init__(self, debug_mode: bool = False):
-        self.script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.sqlmap_path = os.path.join(self.script_dir, "sqlmap")
-        self.sqlmap_api_script = os.path.join(self.sqlmap_path, "sqlmapapi.py")
         self.api_server = "http://127.0.0.1:8775"
         self.current_task_id = None
         self.debug_mode = debug_mode
         self.api_process = None
-        
-        if not os.path.exists(self.sqlmap_api_script):
-            print_error(f"sqlmapapi.py not found in {self.sqlmap_path}. Make sure sqlmap is in the correct directory.")
+
+        # Find sqlmapapi.py from globally installed sqlmap
+        self.sqlmap_api_script = self._find_sqlmapapi()
+
+        if not self.sqlmap_api_script:
+            print_error("sqlmap is not installed or not found in PATH.")
+            print_error("Please install sqlmap globally using one of these methods:")
+            print_error("  - apt install sqlmap (Debian/Ubuntu/Kali)")
+            print_error("  - brew install sqlmap (macOS)")
+            print_error("  - git clone https://github.com/sqlmapproject/sqlmap.git && cd sqlmap && sudo python setup.py install")
             sys.exit(1)
-        
+
+        if self.debug_mode:
+            print_info(f"Using sqlmapapi.py from: {self.sqlmap_api_script}")
+
         # Register cleanup handler
         atexit.register(self._cleanup)
-        
+
         # Start API server if not already running
         self._start_api_server()
+
+    def _find_sqlmapapi(self) -> Optional[str]:
+        """Find sqlmapapi.py from globally installed sqlmap."""
+        # Method 1: Check if sqlmap is in PATH
+        sqlmap_bin = shutil.which('sqlmap')
+        if sqlmap_bin:
+            # sqlmap might be a script or symlink, follow it
+            sqlmap_real = os.path.realpath(sqlmap_bin)
+            sqlmap_dir = os.path.dirname(sqlmap_real)
+
+            # Check for sqlmapapi.py in the same directory
+            api_script = os.path.join(sqlmap_dir, 'sqlmapapi.py')
+            if os.path.exists(api_script):
+                return api_script
+
+        # Method 2: Check common installation paths
+        common_paths = [
+            '/usr/share/sqlmap/sqlmapapi.py',  # Debian/Ubuntu/Kali
+            '/usr/local/share/sqlmap/sqlmapapi.py',  # Manual installation
+            '/opt/sqlmap/sqlmapapi.py',  # Alternative location
+            os.path.expanduser('~/sqlmap/sqlmapapi.py'),  # User home directory
+        ]
+
+        for path in common_paths:
+            if os.path.exists(path):
+                return path
+
+        # Method 3: Try to find via python module
+        try:
+            result = subprocess.run(
+                [sys.executable, '-c', 'import sqlmap; print(sqlmap.__file__)'],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                sqlmap_module = result.stdout.strip()
+                sqlmap_dir = os.path.dirname(sqlmap_module)
+                api_script = os.path.join(sqlmap_dir, 'sqlmapapi.py')
+                if os.path.exists(api_script):
+                    return api_script
+        except:
+            pass
+
+        return None
 
     def _start_api_server(self):
         """Start the sqlmapapi server if not already running."""
@@ -48,9 +101,10 @@ class SQLMapAPIRunner:
             print_info("Starting SQLMap API server...")
             try:
                 # Start the API server process
+                sqlmap_dir = os.path.dirname(self.sqlmap_api_script)
                 self.api_process = subprocess.Popen(
-                    [sys.executable, self.sqlmap_api_script, "-s"], 
-                    cwd=self.script_dir,
+                    [sys.executable, self.sqlmap_api_script, "-s"],
+                    cwd=sqlmap_dir,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )

@@ -11,7 +11,7 @@ from sqlmap_ai.ui import (
 from sqlmap_ai.parser import extract_sqlmap_info
 from sqlmap_ai.ai_analyzer import ai_suggest_next_steps
 class AdaptiveTestingEngine:
-    def __init__(self, runner, interactive_mode=False, default_timeout=120):
+    def __init__(self, runner, interactive_mode=False, default_timeout=120, test_parameter=None):
         self.runner = runner
         self.interactive_mode = interactive_mode
         self.default_timeout = default_timeout
@@ -20,6 +20,15 @@ class AdaptiveTestingEngine:
         self.detected_waf = False
         self.vulnerable_params = []
         self.tamper_scripts_used = []
+        self.found_databases = []  # Track databases found across all steps
+        self.test_parameter = test_parameter  # Specific parameter(s) to test
+
+    def _add_param_option(self, options: List[str]) -> List[str]:
+        """Add -p parameter option if specified"""
+        if self.test_parameter:
+            options.append(f"-p {self.test_parameter}")
+        return options
+
     def run_adaptive_test(self, target_url: str) -> Dict[str, Any]:
         if not self._validate_url(target_url):
             return {
@@ -66,8 +75,9 @@ class AdaptiveTestingEngine:
         if initial_info["databases"]:
             print_success("SQL injection vulnerability confirmed!")
             self.vulnerable_params = initial_info["vulnerable_parameters"]
+            self.found_databases = initial_info["databases"]  # Store databases found in Step 1
             if any(db.lower() in ["mysql", "mssql", "oracle", "postgresql"] for db in initial_info["techniques"]):
-                self.detected_dbms = next((db for db in initial_info["techniques"] 
+                self.detected_dbms = next((db for db in initial_info["techniques"]
                                           if db.lower() in ["mysql", "mssql", "oracle", "postgresql"]), None)
                 print_success(f"DBMS identified: {self.detected_dbms}")
                 step3_result = self._run_step3_dbms_specific(target_url)
@@ -114,19 +124,23 @@ class AdaptiveTestingEngine:
             return False
         return True
     def _run_step1_assessment(self, target_url: str) -> Optional[str]:
-        print_info("Running initial assessment with --batch --dbs --threads=5")
+        options = ["--batch", "--dbs", "--threads=5"]
+        options = self._add_param_option(options)
+        print_info(f"Running initial assessment with {' '.join(options)}")
         result = self.runner.run_sqlmap(
             target_url=target_url,
-            options=["--batch", "--dbs", "--threads=5"],
+            options=options,
             timeout=self.default_timeout,
             interactive_mode=self.interactive_mode
         )
         return result
     def _run_step2_identify_dbms(self, target_url: str) -> Optional[str]:
-        print_info("Running DBMS fingerprinting with --threads=5")
+        options = ["--batch", "--fingerprint", "--threads=5"]
+        options = self._add_param_option(options)
+        print_info(f"Running DBMS fingerprinting with {' '.join(options)}")
         result = self.runner.run_sqlmap(
             target_url=target_url,
-            options=["--batch", "--fingerprint", "--threads=5"],
+            options=options,
             timeout=self.default_timeout,
             interactive_mode=self.interactive_mode
         )
@@ -171,13 +185,22 @@ class AdaptiveTestingEngine:
             result = limited_result
         dbms_info = extract_sqlmap_info(result)
         databases = dbms_info.get("databases", [])
+        # Update found_databases if new ones are discovered
+        if databases:
+            for db in databases:
+                if db not in self.found_databases:
+                    self.found_databases.append(db)
         self.scan_history.append({
             "step": "dbms_specific_scan",
             "command": f"sqlmap -u {target_url} --batch --dbms={self.detected_dbms.lower()} --tables --threads=5",
             "result": dbms_info
         })
-        if databases:
-            print_success(f"Found {len(databases)} databases")
+        # Check if databases exist from any previous step
+        if self.found_databases:
+            if databases:
+                print_success(f"Found {len(databases)} databases")
+            else:
+                print_info(f"Using {len(self.found_databases)} databases from previous steps")
             tables = dbms_info.get("tables", [])
             if tables:
                 print_success(f"Found {len(tables)} tables")
@@ -283,11 +306,12 @@ class AdaptiveTestingEngine:
                         "scan_history": self.scan_history,
                         "message": "Found databases but unable to enumerate tables or extract data. "
                                   "The database might be empty or protected against enumeration.",
-                        "databases_found": databases
+                        "databases_found": self.found_databases
                     }
                 return enhanced_result
         else:
-            print_warning("No databases enumerated. Moving to enhanced testing.")
+            # This should rarely happen now since we track databases globally
+            print_warning("No databases found yet. Moving to enhanced testing.")
             return self._run_step4_enhanced_testing(target_url)
     def _run_step4_enhanced_testing(self, target_url: str) -> Dict[str, Any]:
         print_info("🔴 Step 4: Enhanced Testing")
@@ -770,10 +794,11 @@ class AdaptiveTestingEngine:
                 "message": "All testing methods failed. Target may not be vulnerable.",
                 "scan_history": self.scan_history
             }
-def run_adaptive_test_sequence(runner, target_url, interactive_mode=False, timeout=120):
+def run_adaptive_test_sequence(runner, target_url, interactive_mode=False, timeout=120, test_parameter=None):
     engine = AdaptiveTestingEngine(
         runner=runner,
         interactive_mode=interactive_mode,
-        default_timeout=timeout
+        default_timeout=timeout,
+        test_parameter=test_parameter
     )
     return engine.run_adaptive_test(target_url) 

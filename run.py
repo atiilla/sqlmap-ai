@@ -44,22 +44,6 @@ EXAMPLES:
   sqlmap-ai --config-wizard
   sqlmap-ai --show-config
 
-ENHANCED MODE FEATURES:
-  [X] AI-powered vulnerability analysis
-  [X] Adaptive testing strategies
-  [X] WAF evasion techniques
-  [X] Beautiful HTML reports
-  [X] Risk assessment and remediation guidance
-  [X] Interactive CLI with progress tracking
-  [X] Multiple AI providers (Groq, OpenAI, Anthropic)
-  [X] Advanced configuration management
-
-SIMPLE MODE FEATURES:
-  [X] Basic SQL injection detection
-  [X] Standard SQLMap functionality
-  [X] Minimal dependencies
-  [X] Fast execution
-
 For full help: sqlmap-ai --help
 For enhanced mode help: sqlmap-ai --enhanced --help
 For simple mode help: sqlmap-ai --simple --help

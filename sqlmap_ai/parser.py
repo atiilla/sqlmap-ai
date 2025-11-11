@@ -131,9 +131,10 @@ def extract_sqlmap_info(output: str) -> Dict[str, Any]:
     return result
 def extract_dumped_data(output: str) -> Dict[str, Dict[str, Any]]:
     extracted_data = {}
-    table_dump_pattern = r"Database: ([^\n]+).*?Table: ([^\n]+).*?\[\d+ entries\].*?(\+[-+]+\+\n\|.*?\+[-+]+\+)"
+    # Updated regex to handle both formats: "Database: xxx" and "[+] Database: xxx"
+    table_dump_pattern = r"(?:\[\+\]\s+)?Database:\s+([^\n]+).*?(?:\[\+\]\s+)?Table:\s+([^\n]+).*?(?:\[\+\]\s+)?\[(\d+)\s+entr(?:y|ies)\].*?(\+[-+]+\+\n\|.*?\+[-+]+\+)"
     table_dumps = re.findall(table_dump_pattern, output, re.DOTALL)
-    for db_name, table_name, table_data in table_dumps:
+    for db_name, table_name, entry_count, table_data in table_dumps:
         db_name = db_name.strip()
         table_name = table_name.strip()
         if '.' in table_name:
@@ -141,12 +142,15 @@ def extract_dumped_data(output: str) -> Dict[str, Dict[str, Any]]:
         else:
             key = f"{db_name}.{table_name}"
         header_pattern = r"\|\s+([^|]+)"
-        headers = re.findall(header_pattern, table_data.split('\n')[1])
-        columns = [h.strip() for h in headers]
-        extracted_data[key] = {
-            "columns": columns,
-            "raw_result": table_data
-        }
+        table_lines = table_data.split('\n')
+        if len(table_lines) > 1:
+            headers = re.findall(header_pattern, table_lines[1])
+            columns = [h.strip() for h in headers]
+            extracted_data[key] = {
+                "columns": columns,
+                "entry_count": int(entry_count),
+                "raw_result": table_data
+            }
     return extracted_data
 def display_report(report: str) -> None:
     print("\n" + "=" * 50)
