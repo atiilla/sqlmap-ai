@@ -14,7 +14,7 @@ import json
 
 
 class WAFType(Enum):
-    """Known WAF types and their characteristics"""
+    
     CLOUDFLARE = "cloudflare"
     AWS_WAF = "aws_waf"
     MODSECURITY = "modsecurity"
@@ -78,10 +78,6 @@ class WAFDetector:
         }
     
     def detect_waf(self, response_headers: Dict[str, str], response_body: str) -> Tuple[WAFType, float]:
-        """
-        Detect WAF type from HTTP response
-        Returns (WAF_type, confidence_score)
-        """
         response_text = f"{str(response_headers)} {response_body}".lower()
         
         waf_scores = {}

@@ -38,7 +38,7 @@ class SQLMapAPIRunner:
         self._start_api_server()
 
     def _find_sqlmapapi(self) -> Optional[str]:
-        """Find sqlmapapi.py from globally installed sqlmap."""
+        
         # Method 1: Check if sqlmap is in PATH
         sqlmap_bin = shutil.which('sqlmap')
         if sqlmap_bin:
@@ -83,7 +83,7 @@ class SQLMapAPIRunner:
         return None
 
     def _start_api_server(self):
-        """Start the sqlmapapi server if not already running."""
+        
         try:
             # Check if the server is already running by testing task creation
             response = requests.get(f"{self.api_server}/task/new", timeout=3)
@@ -137,7 +137,7 @@ class SQLMapAPIRunner:
                 raise
 
     def _create_new_task(self) -> Optional[str]:
-        """Create a new scan task and return its ID."""
+        
         try:
             response = requests.get(f"{self.api_server}/task/new")
             data = response.json()
@@ -154,7 +154,7 @@ class SQLMapAPIRunner:
             return None
 
     def _start_scan(self, task_id: str, target_url: str, options: Union[List[str], str], request_file_path: Optional[str] = None) -> bool:
-        """Start a scan for the specified target with given options."""
+        
         scan_options = {
             "flushSession": True,
             "getBanner": True,
@@ -288,7 +288,7 @@ class SQLMapAPIRunner:
             return False
 
     def _get_scan_status(self, task_id: str) -> Optional[str]:
-        """Get the status of a scan."""
+        
         try:
             response = requests.get(f"{self.api_server}/scan/{task_id}/status")
             data = response.json()
@@ -303,7 +303,7 @@ class SQLMapAPIRunner:
             return None
 
     def _get_scan_data(self, task_id: str) -> Optional[Dict[str, Any]]:
-        """Get the scan results."""
+        
         try:
             response = requests.get(f"{self.api_server}/scan/{task_id}/data")
             data = response.json()
@@ -318,7 +318,7 @@ class SQLMapAPIRunner:
             return None
 
     def _delete_task(self, task_id: str) -> bool:
-        """Delete a task."""
+        
         try:
             response = requests.get(f"{self.api_server}/task/{task_id}/delete")
             data = response.json()
@@ -334,7 +334,7 @@ class SQLMapAPIRunner:
             return False
 
     def _cleanup(self):
-        """Clean up resources on exit."""
+        
         if self.api_process and self.api_process.poll() is None:
             try:
                 self.api_process.terminate()
@@ -348,7 +348,7 @@ class SQLMapAPIRunner:
                     pass
 
     def _log_error(self, error_message: str):
-        """Enhanced error logging with debug support."""
+        
         if self.debug_mode:
             print_error(f"{error_message}")
             print_error("Stack trace:")
@@ -357,7 +357,7 @@ class SQLMapAPIRunner:
             print_error(error_message)
 
     def _detect_protocol(self, host: str, content: str = "") -> str:
-        """Detect protocol based on host and content analysis."""
+        
         # Check for explicit port 443
         if ":443" in host:
             return "https"
@@ -377,7 +377,7 @@ class SQLMapAPIRunner:
         return "http"
 
     def _parse_multiline_headers(self, lines: List[str]) -> Dict[str, str]:
-        """Parse HTTP headers handling multi-line continuation."""
+        
         headers = {}
         current_header = None
         current_value = ""
@@ -404,7 +404,7 @@ class SQLMapAPIRunner:
         return headers
 
     def _parse_request_file(self, request_file_path: str) -> Optional[Dict[str, Any]]:
-        """Parse HTTP request file and extract components with improved header handling."""
+        
         try:
             with open(request_file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
@@ -471,7 +471,7 @@ class SQLMapAPIRunner:
             return None
 
     def _monitor_scan(self, task_id: str, timeout: int = 120, interactive_mode: bool = False) -> Optional[str]:
-        """Monitor the scan until it completes or times out."""
+        
         start_time = time.time()
         last_output_time = start_time
         spinner_chars = ['|', '/', '-', '\\']
@@ -553,7 +553,7 @@ class SQLMapAPIRunner:
             return None
 
     def _get_scan_logs(self, task_id: str) -> Optional[str]:
-        """Get the scan logs."""
+        
         try:
             response = requests.get(f"{self.api_server}/scan/{task_id}/log")
             data = response.json()
@@ -566,7 +566,7 @@ class SQLMapAPIRunner:
             return None
 
     def _format_api_data(self, data: List[Dict[str, Any]]) -> str:
-        """Format the API response data to a string similar to CLI output."""
+        
         output_lines = []
         
         # Map of API data types to formatted sections
@@ -681,7 +681,7 @@ class SQLMapAPIRunner:
 
     def run_sqlmap(self, target_url: str = None, options: Union[List[str], str] = None, timeout: int = 180, 
                    interactive_mode: bool = False, request_file: str = None) -> Optional[str]:
-        """Run sqlmap with API against the target URL and return the results."""
+        
         task_id = self._create_new_task()
         if not task_id:
             return None
@@ -755,7 +755,7 @@ class SQLMapAPIRunner:
 
     def run_sqlmap_with_request_file(self, request_file_path: str, options: Union[List[str], str] = None, 
                                    timeout: int = 180, interactive_mode: bool = False) -> Optional[str]:
-        """Convenience method to run sqlmap with a request file."""
+        
         return self.run_sqlmap(
             target_url=None, 
             options=options, 
@@ -765,7 +765,7 @@ class SQLMapAPIRunner:
         )
 
     def gather_info(self, target_url: str, timeout: int = 120, interactive: bool = False) -> Optional[str]:
-        """Run basic fingerprinting and database enumeration."""
+        
         print_info("Starting initial reconnaissance...")
         
         try:
@@ -781,7 +781,7 @@ class SQLMapAPIRunner:
             return None
 
     def fallback_options_for_timeout(self, target_url: str) -> Optional[str]:
-        """Run with more focused options after a timeout."""
+        
         print_info("Running fallback scan...")
         
         fallback_options = [

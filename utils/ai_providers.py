@@ -73,7 +73,6 @@ class AIProviderManager:
             try:
                 self.providers[AIProvider.GROQ] = GroqProvider()
                 self.active_providers.append(AIProvider.GROQ)
-                logger.info("Groq provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Groq: {e}")
         
@@ -82,7 +81,6 @@ class AIProviderManager:
             try:
                 self.providers[AIProvider.OPENAI] = OpenAIProvider()
                 self.active_providers.append(AIProvider.OPENAI)
-                logger.info("OpenAI provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI: {e}")
         
@@ -91,7 +89,6 @@ class AIProviderManager:
             try:
                 self.providers[AIProvider.ANTHROPIC] = AnthropicProvider()
                 self.active_providers.append(AIProvider.ANTHROPIC)
-                logger.info("Anthropic provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Anthropic: {e}")
         
@@ -100,7 +97,6 @@ class AIProviderManager:
             try:
                 self.providers[AIProvider.OLLAMA] = OllamaProvider()
                 self.active_providers.append(AIProvider.OLLAMA)
-                logger.info("Ollama provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Ollama: {e}")
         
@@ -109,7 +105,6 @@ class AIProviderManager:
             try:
                 self.providers[AIProvider.LOCAL] = LocalLLMProvider()
                 self.active_providers.append(AIProvider.LOCAL)
-                logger.info("Local LLM provider initialized")
             except Exception as e:
                 logger.warning(f"Failed to initialize Local LLM: {e}")
     
@@ -120,7 +115,7 @@ class AIProviderManager:
         max_retries: int = 3,
         **kwargs
     ) -> AIResponse:
-        """Get response from AI provider with fallback"""
+        
         
         providers_to_try = [provider] if provider else self.active_providers
         for attempt_provider in providers_to_try:
@@ -146,18 +141,18 @@ class AIProviderManager:
         )
     
     def get_available_providers(self) -> List[AIProvider]:
-        """Get list of available providers"""
+        
         return self.active_providers.copy()
     
     def reinitialize_providers(self):
-        """Reinitialize providers (useful when environment variables change)"""
+        
         self.providers = {}
         self.active_providers = []
         self._setup_providers()
 
 
 class BaseAIProvider:
-    """Base class for AI providers"""
+    
     
     def __init__(self):
         self.default_model = None
@@ -165,7 +160,7 @@ class BaseAIProvider:
         self.last_request_time = 0
     
     async def _rate_limit(self):
-        """Apply rate limiting"""
+        
         current_time = time.time()
         time_since_last = current_time - self.last_request_time
         if time_since_last < self.rate_limit_delay:
@@ -173,12 +168,12 @@ class BaseAIProvider:
         self.last_request_time = time.time()
     
     async def get_response(self, prompt: str, **kwargs) -> AIResponse:
-        """Get response from provider - to be implemented by subclasses"""
+        
         raise NotImplementedError
 
 
 class GroqProvider(BaseAIProvider):
-    """Groq AI provider"""
+    
     
     def __init__(self):
         super().__init__()
@@ -193,7 +188,7 @@ class GroqProvider(BaseAIProvider):
         max_retries: int = 3,
         **kwargs
     ) -> AIResponse:
-        """Get response from Groq"""
+        
         
         model = model or self.default_model
         start_time = time.time()
@@ -234,7 +229,7 @@ class GroqProvider(BaseAIProvider):
 
 
 class OpenAIProvider(BaseAIProvider):
-    """OpenAI provider"""
+    
     
     def __init__(self):
         super().__init__()
@@ -249,7 +244,7 @@ class OpenAIProvider(BaseAIProvider):
         max_retries: int = 3,
         **kwargs
     ) -> AIResponse:
-        """Get response from OpenAI"""
+        
         
         model = model or self.default_model
         start_time = time.time()
@@ -290,7 +285,7 @@ class OpenAIProvider(BaseAIProvider):
 
 
 class AnthropicProvider(BaseAIProvider):
-    """Anthropic Claude provider"""
+    
     
     def __init__(self):
         super().__init__()
@@ -305,7 +300,7 @@ class AnthropicProvider(BaseAIProvider):
         max_retries: int = 3,
         **kwargs
     ) -> AIResponse:
-        """Get response from Anthropic"""
+        
         
         model = model or self.default_model
         start_time = time.time()
@@ -346,7 +341,7 @@ class AnthropicProvider(BaseAIProvider):
 
 
 class OllamaProvider(BaseAIProvider):
-    """Ollama provider for local LLM inference"""
+    
     
     def __init__(self):
         super().__init__()
@@ -357,7 +352,7 @@ class OllamaProvider(BaseAIProvider):
         self.rate_limit_delay = 0.5
     
     def update_model(self, model_name: str):
-        """Update the default model name"""
+        
         self.default_model = model_name
     
     async def get_response(
@@ -367,7 +362,7 @@ class OllamaProvider(BaseAIProvider):
         max_retries: int = 3,
         **kwargs
     ) -> AIResponse:
-        """Get response from Ollama"""
+        
         
         model = model or self.default_model
         start_time = time.time()
@@ -433,7 +428,7 @@ class OllamaProvider(BaseAIProvider):
 
 
 class LocalLLMProvider(BaseAIProvider):
-    """Local LLM provider using transformers"""
+    
     
     def __init__(self):
         super().__init__()
@@ -458,7 +453,7 @@ class LocalLLMProvider(BaseAIProvider):
         max_retries: int = 1,
         **kwargs
     ) -> AIResponse:
-        """Get response from local LLM"""
+        
         
         start_time = time.time()
         
@@ -513,10 +508,10 @@ async def get_ai_response(
     provider: Optional[AIProvider] = None,
     **kwargs
 ) -> AIResponse:
-    """Convenience function to get AI response"""
+    
     return await ai_manager.get_response(prompt, provider, **kwargs)
 
 
 def get_available_ai_providers() -> List[str]:
-    """Get list of available AI provider names"""
+    
     return [provider.value for provider in ai_manager.get_available_providers()]

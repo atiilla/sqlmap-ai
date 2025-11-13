@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-Test suite for Security Manager
-"""
 
 import pytest
 import time
@@ -9,10 +6,10 @@ from sqlmap_ai.security_manager import SecurityManager, SecurityConfig, RateLimi
 
 
 class TestRateLimiter:
-    """Test rate limiting functionality"""
+    
     
     def test_rate_limiter_allows_requests_within_limit(self):
-        """Test that requests within limits are allowed"""
+        
         limiter = RateLimiter(max_requests_per_minute=5, max_requests_per_hour=50)
         
         # Should allow first few requests
@@ -20,7 +17,7 @@ class TestRateLimiter:
             assert limiter.is_allowed()
     
     def test_rate_limiter_blocks_excess_requests(self):
-        """Test that excess requests are blocked"""
+        
         limiter = RateLimiter(max_requests_per_minute=2, max_requests_per_hour=10)
         
         # Use up the limit
@@ -32,10 +29,10 @@ class TestRateLimiter:
 
 
 class TestInputValidator:
-    """Test input validation functionality"""
+    
     
     def test_valid_url_validation(self):
-        """Test validation of valid URLs"""
+        
         validator = InputValidator()
         
         valid_urls = [
@@ -49,7 +46,7 @@ class TestInputValidator:
             assert valid, f"URL {url} should be valid, got error: {error}"
     
     def test_invalid_url_validation(self):
-        """Test validation of invalid URLs"""
+        
         validator = InputValidator()
         
         invalid_urls = [
@@ -69,7 +66,7 @@ class TestInputValidator:
             assert error is not None
     
     def test_sqlmap_options_validation(self):
-        """Test validation of SQLMap options"""
+        
         validator = InputValidator()
         
         # Safe options should pass
@@ -84,7 +81,7 @@ class TestInputValidator:
             assert not valid, f"Dangerous option {option} should be invalid"
     
     def test_filename_sanitization(self):
-        """Test filename sanitization"""
+        
         validator = InputValidator()
         
         test_cases = [
@@ -102,10 +99,10 @@ class TestInputValidator:
 
 
 class TestSecurityManager:
-    """Test security manager functionality"""
+    
     
     def test_security_manager_initialization(self):
-        """Test security manager initializes correctly"""
+        
         config = SecurityConfig(
             max_requests_per_minute=10,
             max_concurrent_scans=2
@@ -116,7 +113,7 @@ class TestSecurityManager:
         assert manager.config.max_concurrent_scans == 2
     
     def test_scan_request_validation(self):
-        """Test scan request validation"""
+        
         manager = SecurityManager()
         
         # Valid request should pass
@@ -127,7 +124,7 @@ class TestSecurityManager:
         assert valid, f"Valid request should pass, got error: {error}"
     
     def test_concurrent_scan_limiting(self):
-        """Test concurrent scan limiting"""
+        
         config = SecurityConfig(max_concurrent_scans=1)
         manager = SecurityManager(config)
         

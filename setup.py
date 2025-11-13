@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Setup script for SQLMap AI
-Provides backward compatibility and additional installation features
-"""
 
 import os
 import sys
@@ -19,7 +15,7 @@ def read_readme():
 
 # Read requirements from pyproject.toml
 def get_requirements():
-    """Get requirements from pyproject.toml"""
+    
     try:
         import tomllib
     except ImportError:
@@ -33,7 +29,7 @@ def get_requirements():
     return []
 
 def install_sqlmap():
-    """Install SQLMap if not already installed"""
+    
     try:
         # Check if sqlmap is already installed
         result = subprocess.run(
@@ -43,7 +39,7 @@ def install_sqlmap():
             timeout=10
         )
         if result.returncode == 0:
-            print("✅ SQLMap is already installed")
+            print("✓ SQLMap is already installed")
             return True
     except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         pass
@@ -56,19 +52,19 @@ def install_sqlmap():
             capture_output=True,
             text=True
         )
-        print("✅ SQLMap installed successfully")
+        print("✓ SQLMap installed successfully")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to install SQLMap: {e}")
+        print(f"X Failed to install SQLMap: {e}")
         print("Please install SQLMap manually: pip install sqlmap")
         return False
 
 def create_env_template():
-    """Create .env template if it doesn't exist"""
+    
     # Use current working directory instead of project root
     env_file = Path.cwd() / ".env"
     if env_file.exists():
-        print("✅ .env file already exists")
+        print("✓ .env file already exists")
         return True
     
     print("📝 Creating .env template...")
@@ -108,15 +104,15 @@ DEFAULT_TIMEOUT=300
     try:
         with open(env_file, 'w') as f:
             f.write(env_content)
-        print("✅ .env template created")
+        print("✓ .env template created")
         print("  Please edit .env file and add your API keys")
         return True
     except Exception as e:
-        print(f"❌ Failed to create .env template: {e}")
+        print(f"X Failed to create .env template: {e}")
         return False
 
 def setup_directories():
-    """Create necessary directories"""
+    
     print("📁 Setting up directories...")
     
     directories = [
@@ -128,15 +124,15 @@ def setup_directories():
     try:
         for directory in directories:
             directory.mkdir(exist_ok=True)
-        print("✅ Directories created")
+        print("✓ Directories created")
         return True
     except Exception as e:
-        print(f"❌ Failed to create directories: {e}")
+        print(f"X Failed to create directories: {e}")
         return False
 
 def run_post_install():
-    """Run post-installation tasks"""
-    print("\n🚀 Running post-installation tasks...")
+    
+    print("\nRunning post-installation tasks...")
     
     success = True
     
@@ -153,13 +149,13 @@ def run_post_install():
         success = False
     
     if success:
-        print("\n🎉 Installation completed successfully!")
+        print("\nInstallation completed successfully!")
         print("\nNext steps:")
         print("1. Edit .env file and add your API keys")
         print("2. Run: sqlmap-ai --config-wizard")
         print("3. Run: sqlmap-ai --help")
     else:
-        print("\n⚠️  Installation completed with issues")
+        print("\n⚠️ Installation completed with issues")
         print("Please resolve the issues above before using SQLMap AI")
     
     return success
@@ -171,12 +167,12 @@ if __name__ == "__main__":
         # Run setup first
         setup(
             name="sqlmap-ai",
-            version="2.0.0",
+            version="2.0.7",
             description="AI-powered SQL injection testing tool with multiple AI providers",
             long_description=read_readme(),
             long_description_content_type="text/markdown",
             author="Atilla",
-            author_email="atiilla@example.com",
+            author_email="attilla@tuta.io",
             url="https://github.com/atiilla/sqlmap-ai",
             packages=find_packages(include=["sqlmap_ai*", "utils*"]),
             include_package_data=True,
@@ -239,7 +235,7 @@ if __name__ == "__main__":
             long_description=read_readme(),
             long_description_content_type="text/markdown",
             author="Atilla",
-            author_email="atiilla@example.com",
+            author_email="attilla@tuta.io",
             url="https://github.com/atiilla/sqlmap-ai",
             packages=find_packages(include=["sqlmap_ai*", "utils*"]),
             include_package_data=True,

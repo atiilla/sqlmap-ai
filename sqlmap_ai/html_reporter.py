@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-HTML Report Generator with Tailwind CSS
-Creates beautiful, interactive reports for SQLMap AI scans
-"""
 
 import json
 import time
@@ -13,7 +9,7 @@ from typing import Dict, List, Any, Optional
 import base64
 
 class HTMLReporter:
-    """Generate beautiful HTML reports with Tailwind CSS"""
+    
     
     def __init__(self):
         self.reports_dir = Path("reports")
@@ -56,7 +52,7 @@ class HTMLReporter:
         }
     
     def assess_vulnerability_risk(self, vuln_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Assess vulnerability risk and impact"""
+        
         
         # Determine injection type
         injection_type = self._determine_injection_type(vuln_data)
@@ -84,7 +80,7 @@ class HTMLReporter:
         }
     
     def _determine_injection_type(self, vuln_data: Dict[str, Any]) -> str:
-        """Determine the type of SQL injection"""
+        
         techniques = vuln_data.get('techniques', [])
         
         if 'time-based blind' in str(techniques).lower():
@@ -101,7 +97,7 @@ class HTMLReporter:
             return "SQL Injection"
     
     def _calculate_risk_score(self, vuln_data: Dict[str, Any]) -> int:
-        """Calculate overall risk score"""
+        
         base_score = 70  # Base SQL injection risk
         
         # Adjust for DBMS type
@@ -122,7 +118,7 @@ class HTMLReporter:
         return min(base_score, 100)
     
     def _get_risk_level(self, score: int) -> str:
-        """Convert risk score to level"""
+        
         if score >= 90:
             return "CRITICAL"
         elif score >= 70:
@@ -133,7 +129,7 @@ class HTMLReporter:
             return "LOW"
     
     def _assess_exploitation_complexity(self, vuln_data: Dict[str, Any]) -> str:
-        """Assess how difficult it is to exploit the vulnerability"""
+        
         if vuln_data.get('waf_detected', False):
             return "Moderate"
         
@@ -146,7 +142,7 @@ class HTMLReporter:
             return "Easy"
     
     def _calculate_remediation_priority(self, risk_score: int, complexity: str) -> str:
-        """Calculate remediation priority"""
+        
         if risk_score >= 90:
             return "IMMEDIATE"
         elif risk_score >= 70:
@@ -157,7 +153,7 @@ class HTMLReporter:
             return "LOW"
 
     def generate_html_report(self, scan_data: Dict[str, Any], output_path: Optional[str] = None) -> str:
-        """Generate a beautiful HTML report"""
+        
         
         if output_path:
             html_path = Path(output_path)
@@ -206,7 +202,7 @@ class HTMLReporter:
         return str(html_path)
     
     def _generate_scan_summary(self, scan_data: Dict[str, Any], vulnerabilities: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Generate scan summary statistics"""
+        
         
         # Calculate overall risk
         if vulnerabilities:
@@ -249,7 +245,7 @@ class HTMLReporter:
     def _create_html_template(self, vulnerabilities: List[Dict[str, Any]], techniques: List[str], 
                             databases: List[str], dbms: str, raw_result: str, 
                             scan_data: Dict[str, Any], scan_summary: Dict[str, Any]) -> str:
-        """Create the HTML template with Tailwind CSS"""
+        
         
         # Use scan summary statistics
         total_vulns = scan_summary.get('vulnerability_count', 0)
@@ -400,7 +396,7 @@ class HTMLReporter:
         return html
     
     def _generate_vulnerabilities_section(self, vulnerabilities: List[Dict[str, Any]]) -> str:
-        """Generate vulnerabilities section HTML"""
+        
         if not vulnerabilities:
             return """
         <div class="mb-8">
@@ -490,7 +486,7 @@ class HTMLReporter:
         """
     
     def _generate_database_section(self, databases: List[str], dbms: str, scan_data: Dict[str, Any] = None) -> str:
-        """Generate database information section with tables and columns"""
+        
         if not databases and not (scan_data and scan_data.get('scan_history')):
             return ""
 
@@ -592,7 +588,7 @@ class HTMLReporter:
         """
     
     def _generate_scan_history_section(self, scan_history: List[Dict[str, Any]]) -> str:
-        """Generate scan history section with detailed findings"""
+        
         if not scan_history:
             return ""
 
@@ -670,7 +666,7 @@ class HTMLReporter:
         """
     
     def _generate_raw_results_section(self, raw_result: str) -> str:
-        """Generate raw results section"""
+        
         if not raw_result:
             return ""
         
@@ -690,7 +686,7 @@ class HTMLReporter:
         """
     
     def _generate_charts_section(self, scan_data: Dict[str, Any]) -> str:
-        """Generate charts section"""
+        
         return """
         <div class="mb-8">
             <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
@@ -708,7 +704,7 @@ class HTMLReporter:
         """
     
     def _generate_chart_js(self, scan_data: Dict[str, Any]) -> str:
-        """Generate Chart.js JavaScript code"""
+        
         vulnerabilities = scan_data.get('scan_info', {}).get('vulnerable_parameters', [])
         techniques = scan_data.get('scan_info', {}).get('techniques', [])
         databases = scan_data.get('scan_info', {}).get('databases', [])

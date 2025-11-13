@@ -172,7 +172,7 @@ def ai_suggest_next_steps(report, scan_history=None, extracted_data=None, ai_pro
     return valid_options
 
 def create_simple_prompt(report, structured_info, scan_history=None, extracted_data=None):
-    """Create a simpler prompt for Ollama to avoid timeouts"""
+    
     prompt = """
     You are a SQLMap expert. Analyze this SQL injection scan result and suggest the next steps.
 

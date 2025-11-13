@@ -1,10 +1,6 @@
-"""
-SQLMap AI - AI-powered SQL injection testing tool
-"""
-
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 __author__ = "Atilla"
-__email__ = "atiilla@example.com"
+__email__ = "atilla@tuta.io"
 __description__ = "AI-powered SQL injection testing tool with multiple AI providers"
 
 # Import main components

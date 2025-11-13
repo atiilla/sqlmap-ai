@@ -1,8 +1,3 @@
-"""
-Advanced Configuration Management System
-Handles configuration loading, validation, and management for SQLMap AI.
-"""
-
 import os
 import json
 import yaml
@@ -17,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class AIProviderConfig:
-    """AI Provider configuration"""
+    
     name: str
     enabled: bool = True
     api_key_env: str = ""
@@ -30,7 +25,7 @@ class AIProviderConfig:
 
 @dataclass
 class SecurityConfig:
-    """Security configuration"""
+    
     enable_rate_limiting: bool = True
     max_requests_per_minute: int = 30
     max_requests_per_hour: int = 500
@@ -44,7 +39,7 @@ class SecurityConfig:
 
 @dataclass
 class SQLMapConfig:
-    """SQLMap execution configuration"""
+    
     default_timeout: int = 120
     max_timeout: int = 600
     default_threads: int = 5
@@ -59,7 +54,7 @@ class SQLMapConfig:
 
 @dataclass
 class ReportingConfig:
-    """Reporting configuration"""
+    
     default_format: str = "html"
     enable_pdf: bool = True
     enable_json: bool = True
@@ -72,7 +67,7 @@ class ReportingConfig:
 
 @dataclass
 class UIConfig:
-    """User interface configuration"""
+    
     enable_colors: bool = True
     show_banner: bool = True
     verbose_output: bool = False
@@ -83,7 +78,7 @@ class UIConfig:
 
 @dataclass
 class LoggingConfig:
-    """Logging configuration"""
+    
     log_directory: str = "logs"
     audit_log_file: str = "sqlmap_ai_audit.log"
     main_log_file: str = "sqlmap_ai.log"
@@ -94,7 +89,7 @@ class LoggingConfig:
 
 @dataclass
 class AppConfig:
-    """Main application configuration"""
+    
     version: str = "2.0.0"
     debug: bool = False
     log_level: str = "INFO"
@@ -113,7 +108,7 @@ class AppConfig:
 
 
 class ConfigManager:
-    """Advanced configuration manager"""
+    
     
     def __init__(self, config_file: Optional[str] = None):
         self.config_file = Path(config_file) if config_file else Path("config.yaml")
@@ -131,7 +126,7 @@ class ConfigManager:
         self.load_config()
     
     def _initialize_default_ai_providers(self):
-        """Initialize default AI provider configurations"""
+        
         default_providers = {
             "groq": AIProviderConfig(
                 name="groq",
@@ -171,14 +166,24 @@ class ConfigManager:
                 max_tokens=512,
                 timeout=60,
                 rate_limit=0.1,
+                priority=5
+            ),
+            "ollama": AIProviderConfig(
+                name="ollama",
+                enabled=os.getenv("ENABLE_OLLAMA", "false").lower() == "true",
+                api_key_env="",
+                model=os.getenv("OLLAMA_MODEL", "llama3.2"),
+                max_tokens=4096,
+                timeout=60,
+                rate_limit=0.5,
                 priority=4
             )
         }
-        
+
         self.config.ai_providers = default_providers
     
     def load_config(self) -> bool:
-        """Load configuration from file"""
+        
         try:
             if self.config_file.exists():
                 logger.info(f"Loading configuration from {self.config_file}")
@@ -204,7 +209,7 @@ class ConfigManager:
             return False
     
     def save_config(self) -> bool:
-        """Save current configuration to file"""
+        
         try:
             # Convert config to dictionary
             config_dict = asdict(self.config)
@@ -226,7 +231,7 @@ class ConfigManager:
             return False
     
     def _merge_config(self, data: Dict[str, Any]):
-        """Merge loaded configuration data with current config"""
+        
         
         # Update AI providers
         if 'ai_providers' in data:
@@ -278,16 +283,16 @@ class ConfigManager:
             self.config.custom_settings.update(data['custom_settings'])
     
     def get_ai_provider_config(self, provider_name: str) -> Optional[AIProviderConfig]:
-        """Get AI provider configuration"""
+        
         return self.config.ai_providers.get(provider_name)
     
     def get_enabled_ai_providers(self) -> List[AIProviderConfig]:
-        """Get list of enabled AI providers sorted by priority"""
+        
         enabled = [p for p in self.config.ai_providers.values() if p.enabled]
         return sorted(enabled, key=lambda x: x.priority)
     
     def update_ai_provider(self, provider_name: str, **kwargs) -> bool:
-        """Update AI provider configuration"""
+        
         if provider_name not in self.config.ai_providers:
             return False
         
@@ -299,7 +304,7 @@ class ConfigManager:
         return True
     
     def validate_config(self) -> List[str]:
-        """Validate configuration and return list of issues"""
+        
         issues = []
         
         # Validate AI providers
@@ -340,7 +345,7 @@ class ConfigManager:
         return issues
     
     def get_sqlmap_defaults(self) -> Dict[str, Any]:
-        """Get default SQLMap options based on configuration"""
+        
         return {
             'timeout': self.config.sqlmap.default_timeout,
             'threads': self.config.sqlmap.default_threads,
@@ -350,33 +355,33 @@ class ConfigManager:
         }
     
     def get_security_config(self) -> SecurityConfig:
-        """Get security configuration"""
+        
         return self.config.security
     
     def get_reporting_config(self) -> ReportingConfig:
-        """Get reporting configuration"""
+        
         return self.config.reporting
     
     def get_ui_config(self) -> UIConfig:
-        """Get UI configuration"""
+        
         return self.config.ui
     
     def set_custom_setting(self, key: str, value: Any):
-        """Set custom application setting"""
+        
         self.config.custom_settings[key] = value
     
     def get_custom_setting(self, key: str, default: Any = None) -> Any:
-        """Get custom application setting"""
+        
         return self.config.custom_settings.get(key, default)
     
     def reset_to_defaults(self):
-        """Reset configuration to defaults"""
+        
         self.config = AppConfig()
         self._initialize_default_ai_providers()
         logger.info("Configuration reset to defaults")
     
     def export_config(self, export_path: str, include_sensitive: bool = False) -> bool:
-        """Export configuration to file"""
+        
         try:
             config_dict = asdict(self.config)
             
@@ -401,7 +406,7 @@ class ConfigManager:
             return False
     
     def get_config_summary(self) -> Dict[str, Any]:
-        """Get configuration summary for display"""
+        
         enabled_providers = [p.name for p in self.get_enabled_ai_providers()]
         
         return {
@@ -422,22 +427,22 @@ config_manager = ConfigManager()
 
 
 def get_config() -> AppConfig:
-    """Get current application configuration"""
+    
     return config_manager.config
 
 
 def save_config() -> bool:
-    """Save current configuration"""
+    
     return config_manager.save_config()
 
 
 def validate_config() -> List[str]:
-    """Validate current configuration"""
+    
     return config_manager.validate_config()
 
 
 def get_timeout_settings():
-    """Get timeout configuration settings"""
+    
     config = get_config()
     
     # Access timeout settings from the config object
@@ -463,7 +468,7 @@ def get_timeout_settings():
         }
 
 def calculate_adaptive_timeout(base_timeout, scan_options, scan_type="follow_up"):
-    """Calculate adaptive timeout based on scan complexity and type"""
+    
     timeout_settings = get_timeout_settings()
     
     # Start with base timeout

@@ -21,20 +21,6 @@ def get_groq_response(
     retry_delay: int = 2,
     timeout: int = 30,
 ) -> Optional[str]:
-    """
-    Get a response from Groq API with error handling and retries.
-
-    Args:
-        prompt (str): The prompt to send to the model.
-        model (str): The model to use (defaults to "qwen/qwen3-32b").
-        role (str): The role of the message (e.g., "user", "system", "assistant").
-        max_retries (int): Maximum number of retries for failed requests.
-        retry_delay (int): Delay (in seconds) between retries.
-        timeout (int): Timeout (in seconds) for the API request.
-
-    Returns:
-        Optional[str]: The model's response, or None if the request fails.
-    """
     # Get API key from environment variable with fallback
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:

@@ -1,8 +1,3 @@
-"""
-Security Management System for SQLMap AI Tool
-Provides input validation, rate limiting, safe execution, and audit logging.
-"""
-
 import re
 import time
 import hashlib
@@ -22,7 +17,7 @@ import os
 
 @dataclass
 class SecurityConfig:
-    """Security configuration settings"""
+    
     max_requests_per_minute: int = 30
     max_requests_per_hour: int = 500
     max_concurrent_scans: int = 3
@@ -36,7 +31,7 @@ class SecurityConfig:
 
 @dataclass
 class SecurityEvent:
-    """Security event for audit logging"""
+    
     timestamp: datetime
     event_type: str
     severity: str
@@ -45,7 +40,7 @@ class SecurityEvent:
 
 
 class RateLimiter:
-    """Thread-safe rate limiter"""
+    
     
     def __init__(self, max_requests_per_minute: int = 30, max_requests_per_hour: int = 500):
         self.max_per_minute = max_requests_per_minute
@@ -55,7 +50,7 @@ class RateLimiter:
         self.lock = threading.Lock()
     
     def is_allowed(self, identifier: str = "default") -> bool:
-        """Check if request is allowed under rate limits"""
+        
         now = datetime.now()
         
         with self.lock:
@@ -80,7 +75,7 @@ class RateLimiter:
             return True
     
     def get_reset_time(self) -> Tuple[int, int]:
-        """Get time until rate limit resets (minutes, hours)"""
+        
         now = datetime.now()
         
         with self.lock:
@@ -99,7 +94,7 @@ class RateLimiter:
 
 
 class InputValidator:
-    """Comprehensive input validation"""
+    
     
     def __init__(self):
         self.dangerous_patterns = [
@@ -117,7 +112,7 @@ class InputValidator:
         self.max_parameter_length = 1000
     
     def validate_url(self, url: str) -> Tuple[bool, Optional[str]]:
-        """Validate target URL"""
+        
         if not url or not isinstance(url, str):
             return False, "URL must be a non-empty string"
         
@@ -164,7 +159,7 @@ class InputValidator:
         return True, None
     
     def _is_local_address(self, hostname: str) -> bool:
-        """Check if hostname is a local/private address"""
+        
         try:
             # Try to parse as IP address
             ip = ipaddress.ip_address(hostname)
@@ -187,7 +182,7 @@ class InputValidator:
         return False
     
     def validate_sqlmap_options(self, options: List[str]) -> Tuple[bool, Optional[str]]:
-        """Validate SQLMap options for safety"""
+        
         dangerous_options = [
             '--os-shell',     # OS command execution
             '--os-pwn',       # OS takeover
@@ -238,7 +233,7 @@ class InputValidator:
         return True, None
     
     def sanitize_filename(self, filename: str) -> str:
-        """Sanitize filename for safe file operations"""
+        
         # Remove dangerous characters
         sanitized = re.sub(r'[^\w\-_\.]', '_', filename)
         
@@ -258,7 +253,7 @@ class InputValidator:
 
 
 class AuditLogger:
-    """Comprehensive audit logging system"""
+    
     
     def __init__(self, log_file: str = None, config_manager=None):
         if log_file is None:
@@ -293,7 +288,7 @@ class AuditLogger:
         self.logger.addHandler(console_handler)
     
     def log_security_event(self, event: SecurityEvent):
-        """Log security event"""
+        
         event_data = {
             "timestamp": event.timestamp.isoformat(),
             "event_type": event.event_type,
@@ -314,7 +309,7 @@ class AuditLogger:
             self.logger.info(log_message)
     
     def log_scan_start(self, target_url: str, options: List[str], user_context: str = None):
-        """Log scan initiation"""
+        
         event = SecurityEvent(
             timestamp=datetime.now(),
             event_type="SCAN_START",
@@ -329,7 +324,7 @@ class AuditLogger:
         self.log_security_event(event)
     
     def log_scan_result(self, target_url: str, vulnerabilities_found: int, user_context: str = None):
-        """Log scan results"""
+        
         severity = "HIGH" if vulnerabilities_found > 0 else "INFO"
         
         event = SecurityEvent(
@@ -345,7 +340,7 @@ class AuditLogger:
         self.log_security_event(event)
     
     def log_security_violation(self, violation_type: str, details: Dict[str, Any], user_context: str = None):
-        """Log security violations"""
+        
         event = SecurityEvent(
             timestamp=datetime.now(),
             event_type="SECURITY_VIOLATION",
@@ -360,14 +355,14 @@ class AuditLogger:
 
 
 class EncryptionManager:
-    """Manage encryption for sensitive data"""
+    
     
     def __init__(self):
         self.key = self._get_or_create_key()
         self.cipher = Fernet(self.key)
     
     def _get_or_create_key(self) -> bytes:
-        """Get existing encryption key or create new one"""
+        
         key_file = Path(".sqlmap_ai_key")
         
         if key_file.exists():
@@ -379,19 +374,19 @@ class EncryptionManager:
             return key
     
     def encrypt_data(self, data: str) -> str:
-        """Encrypt sensitive data"""
+        
         encrypted = self.cipher.encrypt(data.encode())
         return encrypted.hex()
     
     def decrypt_data(self, encrypted_hex: str) -> str:
-        """Decrypt sensitive data"""
+        
         encrypted = bytes.fromhex(encrypted_hex)
         decrypted = self.cipher.decrypt(encrypted)
         return decrypted.decode()
 
 
 class SecurityManager:
-    """Main security management system"""
+    
     
     def __init__(self, config: Optional[SecurityConfig] = None):
         self.config = config or SecurityConfig()
@@ -406,7 +401,7 @@ class SecurityManager:
         self.scan_lock = threading.Lock()
     
     def validate_scan_request(self, target_url: str, options: List[str]) -> Tuple[bool, Optional[str]]:
-        """Comprehensive scan request validation"""
+        
         
         # Rate limiting check
         if not self.rate_limiter.is_allowed():
@@ -475,7 +470,7 @@ class SecurityManager:
         return True, None
     
     def register_scan_start(self, target_url: str, options: List[str], user_context: str = None) -> str:
-        """Register scan start and return scan ID"""
+        
         scan_id = hashlib.md5(f"{target_url}{time.time()}".encode()).hexdigest()
         
         with self.scan_lock:
@@ -487,7 +482,7 @@ class SecurityManager:
         return scan_id
     
     def register_scan_complete(self, scan_id: str, target_url: str, vulnerabilities_found: int, user_context: str = None):
-        """Register scan completion"""
+        
         with self.scan_lock:
             self.active_scans.discard(scan_id)
         
@@ -495,7 +490,7 @@ class SecurityManager:
             self.audit_logger.log_scan_result(target_url, vulnerabilities_found, user_context)
     
     def get_security_summary(self) -> Dict[str, Any]:
-        """Get current security status summary"""
+        
         minute_reset, hour_reset = self.rate_limiter.get_reset_time()
         
         return {
@@ -509,7 +504,7 @@ class SecurityManager:
 
 
 def require_security_check(security_manager: SecurityManager):
-    """Decorator to enforce security checks on functions"""
+    
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -541,7 +536,7 @@ def require_security_check(security_manager: SecurityManager):
 
 
 class SecurityError(Exception):
-    """Custom exception for security violations"""
+    
     pass
 
 

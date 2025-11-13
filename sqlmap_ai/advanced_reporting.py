@@ -1,8 +1,3 @@
-"""
-Advanced reporting system with HTML, PDF, and interactive visualizations.
-Provides comprehensive vulnerability analysis and remediation guidance.
-"""
-
 import json
 import time
 import os
@@ -36,7 +31,7 @@ except ImportError:
 
 @dataclass
 class VulnerabilityDetails:
-    """Detailed vulnerability information"""
+    
     parameter: str
     injection_type: str
     payload: str
@@ -50,7 +45,7 @@ class VulnerabilityDetails:
 
 @dataclass
 class ScanStatistics:
-    """Scan performance and statistics"""
+    
     total_requests: int
     successful_injections: int
     false_positives: int
@@ -62,7 +57,7 @@ class ScanStatistics:
 
 @dataclass
 class RemediationGuidance:
-    """Remediation recommendations"""
+    
     immediate_actions: List[str]
     long_term_fixes: List[str]
     secure_coding_practices: List[str]
@@ -71,7 +66,7 @@ class RemediationGuidance:
 
 
 class VulnerabilityAssessment:
-    """Vulnerability risk assessment engine"""
+    
     
     def __init__(self):
         self.risk_factors = {
@@ -106,7 +101,7 @@ class VulnerabilityAssessment:
         }
     
     def assess_vulnerability(self, vuln_data: Dict[str, Any]) -> VulnerabilityDetails:
-        """Assess vulnerability risk and impact"""
+        
         
         # Determine injection type
         injection_type = self._determine_injection_type(vuln_data)
@@ -134,7 +129,7 @@ class VulnerabilityAssessment:
         )
     
     def _determine_injection_type(self, vuln_data: Dict[str, Any]) -> str:
-        """Determine the type of SQL injection"""
+        
         techniques = vuln_data.get('techniques', [])
         
         if 'time-based blind' in str(techniques).lower():
@@ -151,7 +146,7 @@ class VulnerabilityAssessment:
             return "Generic SQL Injection"
     
     def _calculate_risk_score(self, vuln_data: Dict[str, Any]) -> int:
-        """Calculate numerical risk score"""
+        
         base_score = 60  # Base vulnerability score
         
         # Database privileges factor
@@ -180,7 +175,7 @@ class VulnerabilityAssessment:
         return min(base_score, 100)
     
     def _get_risk_level(self, score: int) -> str:
-        """Convert risk score to risk level"""
+        
         if score >= 90:
             return "CRITICAL"
         elif score >= 70:
@@ -193,7 +188,7 @@ class VulnerabilityAssessment:
             return "INFO"
     
     def _assess_exploitation_complexity(self, vuln_data: Dict[str, Any]) -> str:
-        """Assess how difficult the vulnerability is to exploit"""
+        
         factors = 0
         
         # WAF presence increases complexity
@@ -226,7 +221,7 @@ class VulnerabilityAssessment:
             return "Trivial"
     
     def _calculate_remediation_priority(self, risk_score: int, complexity: str) -> str:
-        """Calculate remediation priority"""
+        
         if risk_score >= 90:
             return "IMMEDIATE"
         elif risk_score >= 70:
@@ -240,7 +235,7 @@ class VulnerabilityAssessment:
 
 
 class AdvancedReportGenerator:
-    """Advanced report generator with multiple output formats"""
+    
     
     def __init__(self):
         self.vulnerability_assessor = VulnerabilityAssessment()
@@ -249,7 +244,7 @@ class AdvancedReportGenerator:
         self._create_templates()
     
     def _create_templates(self):
-        """Create HTML templates for reports"""
+        
         if not HAS_JINJA2:
             return
         
@@ -395,7 +390,7 @@ class AdvancedReportGenerator:
         output_format: str = "html",
         output_path: Optional[str] = None
     ) -> str:
-        """Generate comprehensive vulnerability report"""
+        
         
         # Process scan data
         vulnerabilities = self._process_vulnerabilities(scan_data)
@@ -411,7 +406,7 @@ class AdvancedReportGenerator:
             )
     
     def _process_vulnerabilities(self, scan_data: Dict[str, Any]) -> List[VulnerabilityDetails]:
-        """Process scan data to extract vulnerability details"""
+        
         vulnerabilities = []
         
         scan_history = scan_data.get('scan_history', [])
@@ -441,7 +436,7 @@ class AdvancedReportGenerator:
         scan_data: Dict[str, Any], 
         vulnerabilities: List[VulnerabilityDetails]
     ) -> Dict[str, Any]:
-        """Generate scan summary statistics"""
+        
         
         # Calculate overall risk
         if vulnerabilities:
@@ -482,7 +477,7 @@ class AdvancedReportGenerator:
         }
     
     def _generate_remediation_guidance(self, vulnerabilities: List[VulnerabilityDetails]) -> RemediationGuidance:
-        """Generate comprehensive remediation guidance"""
+        
         
         immediate_actions = [
             "Immediately patch or disable vulnerable endpoints",
@@ -542,7 +537,7 @@ class AdvancedReportGenerator:
         remediation: RemediationGuidance,
         output_path: Optional[str] = None
     ) -> str:
-        """Generate HTML report"""
+        
         
         if not HAS_JINJA2:
             return self._generate_simple_html_report(scan_data, vulnerabilities, scan_summary)
@@ -587,7 +582,7 @@ class AdvancedReportGenerator:
         vulnerabilities: List[VulnerabilityDetails],
         scan_summary: Dict[str, Any]
     ) -> str:
-        """Generate simple HTML report without Jinja2"""
+        
         
         html_content = f"""
         <!DOCTYPE html>
@@ -653,7 +648,7 @@ class AdvancedReportGenerator:
         remediation: RemediationGuidance,
         output_path: Optional[str] = None
     ) -> str:
-        """Generate JSON report"""
+        
         
         report_data = {
             "metadata": {
@@ -684,7 +679,7 @@ class AdvancedReportGenerator:
 
     
     def _generate_timeline_chart(self, scan_history: List[Dict[str, Any]]) -> str:
-        """Generate timeline chart of scan steps"""
+        
         
         if not HAS_PLOTLY:
             return ""

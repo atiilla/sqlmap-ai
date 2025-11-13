@@ -1,8 +1,3 @@
-"""
-Enhanced Command Line Interface for SQLMap AI
-Provides rich CLI experience with better argument parsing, help system, and interactive modes.
-"""
-
 import argparse
 import sys
 import os
@@ -29,25 +24,31 @@ from utils.ai_providers import get_available_ai_providers
 
 
 class EnhancedCLI:
-    """Enhanced CLI interface with rich formatting and interactive features"""
+    
     
     def __init__(self):
         self.console = Console() if HAS_RICH else None
         self.config = get_config()
     
     def print_banner(self):
-        """Print enhanced banner"""
-        if HAS_RICH and self.console:
-            banner_text = """
+        
+        # Use SQLMap-style logo for consistency
+        try:
+            from sqlmap_ai.startup import print_sqlmapai_logo
+            print_sqlmapai_logo()
+        except ImportError:
+            # Fallback banner
+            if HAS_RICH and self.console:
+                banner_text = """
 ╔═══════════════════════════════════════════════════════════════╗
 ║                       SQLMap AI v2.0                          ║
 ║        Advanced AI-Powered SQL Injection Testing Tool         ║
 ║             Powered by Artificial Intelligence                ║
 ╚═══════════════════════════════════════════════════════════════╝
-            """
-            self.console.print(Panel(banner_text, style="bold blue"))
-        else:
-            print("""
+                """
+                self.console.print(Panel(banner_text, style="bold blue"))
+            else:
+                print("""
 ────────────────────────────────────────────────────────────────
                         SQLMap AI v2.0
           Advanced AI-Powered SQL Injection Testing Tool
@@ -56,7 +57,7 @@ class EnhancedCLI:
             """)
     
     def create_parser(self) -> argparse.ArgumentParser:
-        """Create enhanced argument parser"""
+        
         parser = argparse.ArgumentParser(
             description="SQLMap AI - Advanced SQL Injection Testing Tool",
             formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -282,155 +283,204 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
         return parser
     
     def run_config_wizard(self):
-        """Interactive configuration wizard"""
+        
         if not HAS_RICH:
             print("Configuration wizard requires 'rich' library. Please install it.")
             return
-        
+
         self.console.print(Panel("Configuration Wizard", style="bold green"))
-        
-        # AI Provider Configuration
-        self.console.print("\n[bold]AI Provider Configuration[/bold]")
-        
-        # Check for API keys
-        providers = {
-            'groq': 'GROQ_API_KEY',
-            'openai': 'OPENAI_API_KEY',
-            'anthropic': 'ANTHROPIC_API_KEY'
+
+        # AI Provider Selection
+        self.console.print("\n[bold cyan]Step 1: Select AI Provider[/bold cyan]")
+        self.console.print("Choose which AI provider you want to use:\n")
+
+        provider_options = [
+            ("1", "Groq", "Fast and free API (recommended for beginners)"),
+            ("2", "OpenAI", "GPT models (requires paid API key)"),
+            ("3", "Anthropic", "Claude models (requires paid API key)"),
+            ("4", "Ollama", "Local AI provider (free, requires Ollama installation)"),
+        ]
+
+        for num, name, desc in provider_options:
+            self.console.print(f"  [bold]{num}.[/bold] {name} - {desc}")
+
+        while True:
+            choice = Prompt.ask("\nSelect provider (1-4)", default="1")
+            if choice in ["1", "2", "3", "4"]:
+                break
+            self.console.print("[red]Invalid choice. Please enter 1, 2, 3, or 4.[/red]")
+
+        provider_map = {
+            "1": ("groq", "Groq", "GROQ_API_KEY"),
+            "2": ("openai", "OpenAI", "OPENAI_API_KEY"),
+            "3": ("anthropic", "Anthropic", "ANTHROPIC_API_KEY"),
+            "4": ("ollama", "Ollama", None)
         }
+
+        selected_provider, provider_name, env_var = provider_map[choice]
+
+        # Configure selected provider
+        self.console.print(f"\n[bold]Configuring {provider_name}[/bold]")
+
+        if selected_provider == "ollama":
+            # Handle Ollama configuration
+            self._configure_ollama()
+            # Update config to set Ollama as primary provider
+            config_manager.update_ai_provider("ollama", enabled=True, priority=1)
+            # Disable other providers or set lower priority
+            for other_provider in ["groq", "openai", "anthropic"]:
+                config_manager.update_ai_provider(other_provider, enabled=False)
+        else:
+            # Handle API key-based providers
+            self.console.print(f"\n[bold cyan]Step 2: API Key Configuration[/bold cyan]")
+
+            # Check if API key already exists
+            current_key = os.getenv(env_var)
+            if current_key:
+                self.console.print(f"[green]✓ API key for {provider_name} is already set[/green]")
+                if not Confirm.ask("Would you like to update it?", default=False):
+                    # Key exists and user doesn't want to change it, just enable the provider
+                    config_manager.update_ai_provider(selected_provider, enabled=True, priority=1)
+                    # Disable other providers
+                    for other_provider in ["groq", "openai", "anthropic", "ollama"]:
+                        if other_provider != selected_provider:
+                            config_manager.update_ai_provider(other_provider, enabled=False)
+                    self.console.print(f"[green]✓ {provider_name} is now configured as your primary AI provider[/green]")
+                    self._finalize_config()
+                    return
+
+            # Prompt for API key
+            self.console.print(f"\nTo use {provider_name}, you need an API key.")
+            self.console.print(f"You can get one from:")
+
+            api_urls = {
+                "groq": "https://console.groq.com/keys",
+                "openai": "https://platform.openai.com/api-keys",
+                "anthropic": "https://console.anthropic.com/settings/keys"
+            }
+
+            if selected_provider in api_urls:
+                self.console.print(f"  → {api_urls[selected_provider]}")
+
+            self.console.print()
+            api_key = Prompt.ask(f"Enter your {provider_name} API key", password=True)
+
+            if api_key and api_key.strip():
+                # Save to config.yaml instead of .env
+                self._save_api_key_to_config(env_var, api_key.strip())
+                self.console.print(f"[green]✓ {provider_name} API key saved to config.yaml[/green]")
+
+                # Update provider configuration
+                config_manager.update_ai_provider(selected_provider, enabled=True, priority=1)
+
+                # Disable other providers
+                for other_provider in ["groq", "openai", "anthropic", "ollama"]:
+                    if other_provider != selected_provider:
+                        config_manager.update_ai_provider(other_provider, enabled=False)
+
+                self.console.print(f"[green]✓ {provider_name} is now configured as your primary AI provider[/green]")
+            else:
+                self.console.print("[yellow]⚠ No API key provided. Provider will not be enabled.[/yellow]")
+                return
         
-        for provider, env_var in providers.items():
-            has_key = bool(os.getenv(env_var))
-            status = "[X] Available" if has_key else "❌ Missing API Key"
-            self.console.print(f"  {provider.title()}: {status}")
-            
-            if not has_key:
-                if Confirm.ask(f"Would you like to set up {provider.title()}?"):
-                    api_key = Prompt.ask(f"Enter {provider.title()} API key", password=True)
-                    if api_key:
-                        # Update .env file
-                        self._update_env_file(env_var, api_key)
-                        self.console.print(f"[X] {provider.title()} API key saved")
+        # Finalize configuration
+        self._finalize_config()
+
+    def _configure_ollama(self):
         
-        # Check Ollama
-        ollama_enabled = os.getenv("ENABLE_OLLAMA", "false").lower() == "true"
-        current_model = os.getenv("OLLAMA_MODEL", "llama3.2")
-        ollama_status = f"[X] Available ({current_model})" if ollama_enabled else "❌ Disabled"
-        self.console.print(f"  Ollama: {ollama_status}")
+        self.console.print("\n[bold cyan]Step 2: Ollama Model Selection[/bold cyan]")
+
+        # Enable Ollama in environment
+        self._update_env_file("ENABLE_OLLAMA", "true")
+
+        # Check if Ollama is running and get available models
+        available_models = self._get_ollama_models()
+
+        if available_models:
+            self.console.print(f"\n[green]✓ Found {len(available_models)} Ollama model(s):[/green]")
+            for i, model in enumerate(available_models, 1):
+                self.console.print(f"  {i}. {model}")
+
+            self.console.print(f"  {len(available_models) + 1}. Enter custom model name")
+
+            while True:
+                try:
+                    choice = Prompt.ask(
+                        f"Select model (1-{len(available_models) + 1})",
+                        default="1"
+                    )
+
+                    choice_num = int(choice)
+                    if 1 <= choice_num <= len(available_models):
+                        selected_model = available_models[choice_num - 1]
+                        self._update_env_file("OLLAMA_MODEL", selected_model)
+                        self.console.print(f"[green]✓ Model set to: {selected_model}[/green]")
+                        break
+                    elif choice_num == len(available_models) + 1:
+                        custom_model = Prompt.ask("Enter model name (e.g., llama3.2, codellama, mistral)")
+                        if custom_model:
+                            self._update_env_file("OLLAMA_MODEL", custom_model)
+                            self.console.print(f"[green]✓ Model set to: {custom_model}[/green]")
+                            break
+                    else:
+                        self.console.print(f"[red]Invalid selection. Please enter 1-{len(available_models) + 1}.[/red]")
+                except ValueError:
+                    self.console.print("[red]Invalid input. Please enter a number.[/red]")
+        else:
+            self.console.print("[yellow]⚠ No models found. Ollama might not be running or no models are installed.[/yellow]")
+            self.console.print("\n[bold]To get started:[/bold]")
+            self.console.print("  1. Start Ollama: ollama serve")
+            self.console.print("  2. Download a model: ollama pull llama3.2")
+            self.console.print()
+
+            custom_model = Prompt.ask("Enter model name to use", default="llama3.2")
+            self._update_env_file("OLLAMA_MODEL", custom_model)
+            self.console.print(f"[green]✓ Model set to: {custom_model}[/green]")
+
+    def _save_api_key_to_config(self, env_var: str, api_key: str):
         
-        if ollama_enabled:
-            if Confirm.ask("Would you like to change the Ollama model?"):
-                available_models = self._get_ollama_models()
-                if available_models:
-                    self.console.print(f"\n[green]Available Ollama models:[/green]")
-                    for i, model in enumerate(available_models, 1):
-                        self.console.print(f"  {i}. {model}")
-                    
-                    if Confirm.ask("Would you like to select a model?"):
-                        while True:
-                            try:
-                                choice = Prompt.ask(
-                                    f"Select model (1-{len(available_models)}) or 'custom' for manual input",
-                                    default="1"
-                                )
-                                
-                                if choice.lower() == 'custom':
-                                    custom_model = Prompt.ask("Enter model name (e.g., llama3.2, codellama, mistral)")
-                                    if custom_model:
-                                        self._update_env_file("OLLAMA_MODEL", custom_model)
-                                        self.console.print(f"[X] Model changed to: {custom_model}")
-                                        break
-                                else:
-                                    model_index = int(choice) - 1
-                                    if 0 <= model_index < len(available_models):
-                                        selected_model = available_models[model_index]
-                                        self._update_env_file("OLLAMA_MODEL", selected_model)
-                                        self.console.print(f"[X] Model changed to: {selected_model}")
-                                        break
-                                    else:
-                                        self.console.print("[red]Invalid selection. Please try again.[/red]")
-                            except ValueError:
-                                self.console.print("[red]Invalid input. Please enter a number or 'custom'.[/red]")
-                else:
-                    self.console.print("[yellow]No models found. Please install models with: ollama pull llama3.2[/yellow]")
-                    custom_model = Prompt.ask("Enter model name to use", default=current_model)
-                    self._update_env_file("OLLAMA_MODEL", custom_model)
-                    self.console.print(f"[X] Model changed to: {custom_model}")
+        # Also update environment for current session
+        os.environ[env_var] = api_key
+        # Update .env file for persistence
+        self._update_env_file(env_var, api_key)
+
+    def _finalize_config(self):
         
-        elif not ollama_enabled:
-            if Confirm.ask("Would you like to enable Ollama (local AI provider)?"):
-                self._update_env_file("ENABLE_OLLAMA", "true")
-                self.console.print("[X] Ollama enabled")
-                
-                # Check if Ollama is running and get available models
-                available_models = self._get_ollama_models()
-                if available_models:
-                    self.console.print(f"\n[green]Available Ollama models:[/green]")
-                    for i, model in enumerate(available_models, 1):
-                        self.console.print(f"  {i}. {model}")
-                    
-                    if Confirm.ask("Would you like to select a model?"):
-                        while True:
-                            try:
-                                choice = Prompt.ask(
-                                    f"Select model (1-{len(available_models)}) or 'custom' for manual input",
-                                    default="1"
-                                )
-                                
-                                if choice.lower() == 'custom':
-                                    custom_model = Prompt.ask("Enter model name (e.g., llama3.2, codellama, mistral)")
-                                    if custom_model:
-                                        self._update_env_file("OLLAMA_MODEL", custom_model)
-                                        self.console.print(f"[X] Model set to: {custom_model}")
-                                        break
-                                else:
-                                    model_index = int(choice) - 1
-                                    if 0 <= model_index < len(available_models):
-                                        selected_model = available_models[model_index]
-                                        self._update_env_file("OLLAMA_MODEL", selected_model)
-                                        self.console.print(f"[X] Model set to: {selected_model}")
-                                        break
-                                    else:
-                                        self.console.print("[red]Invalid selection. Please try again.[/red]")
-                            except ValueError:
-                                self.console.print("[red]Invalid input. Please enter a number or 'custom'.[/red]")
-                else:
-                    self.console.print("[yellow]No models found. Please install models with: ollama pull llama3.2[/yellow]")
-                    custom_model = Prompt.ask("Enter model name to use", default="llama3.2")
-                    self._update_env_file("OLLAMA_MODEL", custom_model)
-                    self.console.print(f"[X] Model set to: {custom_model}")
-                
-                self.console.print("Note: Make sure Ollama is installed and running (ollama serve)")
-        
+        self.console.print("\n[bold cyan]Step 3: Additional Settings[/bold cyan]")
+
         # Security Configuration
         self.console.print("\n[bold]Security Configuration[/bold]")
-        
+
         safe_mode = Confirm.ask("Enable safe mode (recommended)?", default=True)
         config_manager.config.security.safe_mode = safe_mode
-        
+
         rate_limit = Prompt.ask(
-            "Max requests per minute", 
+            "Max requests per minute",
             default=str(config_manager.config.security.max_requests_per_minute)
         )
         config_manager.config.security.max_requests_per_minute = int(rate_limit)
-        
+
         # SQLMap Configuration
         self.console.print("\n[bold]SQLMap Configuration[/bold]")
-        
+
         timeout = Prompt.ask(
             "Default scan timeout (seconds)",
             default=str(config_manager.config.sqlmap.default_timeout)
         )
         config_manager.config.sqlmap.default_timeout = int(timeout)
-        
+
         # Save configuration
         if config_manager.save_config():
-            self.console.print("[X] Configuration saved successfully!")
+            self.console.print("\n[green]✓ Configuration saved successfully![/green]")
+            self.console.print("\n[bold]Next steps:[/bold]")
+            self.console.print("  • Run a scan: sqlmap-ai -u <target_url>")
+            self.console.print("  • View config: sqlmap-ai --show-config")
+            self.console.print("  • Get help: sqlmap-ai --help")
         else:
-            self.console.print("❌ Failed to save configuration")
+            self.console.print("[red]✗ Failed to save configuration[/red]")
     
     def _get_ollama_models(self) -> list:
-        """Get available Ollama models"""
+        
         try:
             import requests
             import json
@@ -456,7 +506,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             return []
     
     def _update_env_file(self, key: str, value: str):
-        """Update .env file with new key-value pair"""
+        
         env_file = Path(".env")
         lines = []
         
@@ -473,14 +523,14 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
         env_file.write_text("\n".join(lines))
     
     def show_config(self):
-        """Display current configuration"""
+        
         if HAS_RICH and self.console:
             self._show_config_rich()
         else:
             self._show_config_simple()
     
     def _show_config_rich(self):
-        """Show configuration with rich formatting"""
+        
         config_summary = config_manager.get_config_summary()
         
         # Create configuration table
@@ -504,7 +554,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
         providers_table.add_column("Priority", style="magenta")
         
         for provider in config_manager.get_enabled_ai_providers():
-            status = "[X] Enabled" if provider.enabled else "❌ Disabled"
+            status = "[X] Enabled" if provider.enabled else "X Disabled"
             providers_table.add_row(
                 provider.name.title(),
                 status,
@@ -515,7 +565,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
         self.console.print(providers_table)
     
     def _show_config_simple(self):
-        """Show configuration in simple format"""
+        
         config_summary = config_manager.get_config_summary()
         
         print("\nSQLMap AI Configuration:")
@@ -534,7 +584,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             print(f"{provider.name.title()}: {status} ({provider.model})")
     
     def validate_config(self):
-        """Validate and display configuration issues"""
+        
         issues = config_manager.validate_config()
         
         if HAS_RICH and self.console:
@@ -558,7 +608,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
                 print("[X] Configuration is valid")
     
     def check_providers(self):
-        """Check AI provider availability"""
+        
         if HAS_RICH and self.console:
             self.console.print(Panel("AI Provider Status Check", style="bold blue"))
             
@@ -576,10 +626,10 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             
             for provider, env_var in providers.items():
                 if provider == 'Ollama':
-                    has_key = "[X] Enabled" if os.getenv(env_var, "false").lower() == "true" else "❌ Disabled"
+                    has_key = "[X] Enabled" if os.getenv(env_var, "false").lower() == "true" else "X Disabled"
                     status = "Available" if os.getenv(env_var, "false").lower() == "true" else "Unavailable"
                 else:
-                    has_key = "[X] Set" if os.getenv(env_var) else "❌ Missing"
+                    has_key = "[X] Set" if os.getenv(env_var) else "X Missing"
                     status = "Available" if os.getenv(env_var) else "Unavailable"
                 
                 providers_table.add_row(provider, has_key, status)
@@ -602,7 +652,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
                 print(f"  {provider}: {status}")
     
     def show_security_status(self):
-        """Show security status"""
+        
         status = security_manager.get_security_summary()
         
         if HAS_RICH and self.console:
@@ -620,7 +670,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
                 print(f"  {key.replace('_', ' ').title()}: {value}")
     
     def list_ollama_models(self):
-        """List available Ollama models"""
+        
         if HAS_RICH and self.console:
             self.console.print(Panel("Ollama Models", style="bold blue"))
         else:
@@ -689,7 +739,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
                 print("  3. Run configuration wizard: sqlmap-ai --config-wizard")
     
     def show_scan_history(self):
-        """Show recent scan history"""
+        
         # This would integrate with a scan history tracking system
         if HAS_RICH and self.console:
             self.console.print(Panel("Recent Scan History", style="bold blue"))
@@ -699,7 +749,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             print("No scan history available yet.")
     
     def export_config(self, output_path: str):
-        """Export configuration to file"""
+        
         success = config_manager.export_config(output_path, include_sensitive=False)
         
         if success:
@@ -709,19 +759,19 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
                 print(f"[X] Configuration exported to {output_path}")
         else:
             if HAS_RICH and self.console:
-                self.console.print(f"❌ Failed to export configuration")
+                self.console.print(f"X Failed to export configuration")
             else:
-                print(f"❌ Failed to export configuration")
+                print(f"X Failed to export configuration")
 
 
 def create_cli() -> argparse.ArgumentParser:
-    """Create and return CLI parser"""
+    
     cli = EnhancedCLI()
     return cli.create_parser()
 
 
 def handle_cli_commands(args: argparse.Namespace) -> bool:
-    """Handle utility CLI commands that don't require scanning"""
+    
     cli = EnhancedCLI()
     
     # Show banner unless disabled

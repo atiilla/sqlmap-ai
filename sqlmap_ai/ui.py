@@ -2,16 +2,8 @@ import os
 from colorama import init, Fore, Style
 init()
 def print_banner():
-    banner = r"""
-────▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀█─█
-▀▀▀▀▄─█─█─█─█─█─█──█▀█
-─────▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀─▀
-
-  SQL Injection Testing Assistant powered by AI
-  Helping you find and exploit SQL injection vulnerabilities
-  Author: @atiilla
-    """
-    print(banner)
+    from sqlmap_ai.startup import show_startup_animation
+    show_startup_animation()
 def print_info(message, **kwargs):
     if 'end' in kwargs:
         print(f"{Fore.BLUE}[INFO] {message}{Style.RESET_ALL}", end=kwargs['end'], flush=kwargs.get('flush', False))

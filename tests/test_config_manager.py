@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-Test suite for Configuration Manager
-"""
 
 import pytest
 import tempfile
@@ -11,10 +8,10 @@ from sqlmap_ai.config_manager import ConfigManager, AppConfig, AIProviderConfig
 
 
 class TestConfigManager:
-    """Test configuration manager functionality"""
+    
     
     def test_config_manager_initialization(self):
-        """Test config manager initializes with defaults"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             manager = ConfigManager(str(config_file))
@@ -23,7 +20,7 @@ class TestConfigManager:
             assert len(manager.config.ai_providers) > 0
     
     def test_ai_provider_configuration(self):
-        """Test AI provider configuration"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             manager = ConfigManager(str(config_file))
@@ -39,7 +36,7 @@ class TestConfigManager:
             assert not manager.get_ai_provider_config("groq").enabled
     
     def test_config_validation(self):
-        """Test configuration validation"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             manager = ConfigManager(str(config_file))
@@ -50,7 +47,7 @@ class TestConfigManager:
             assert isinstance(issues, list)
     
     def test_config_save_load(self):
-        """Test saving and loading configuration"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             manager = ConfigManager(str(config_file))
@@ -69,7 +66,7 @@ class TestConfigManager:
             assert manager2.config.sqlmap.default_timeout == 300
     
     def test_enabled_providers(self):
-        """Test getting enabled providers"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             manager = ConfigManager(str(config_file))
@@ -88,7 +85,7 @@ class TestConfigManager:
             assert enabled[0].name == "groq"
     
     def test_custom_settings(self):
-        """Test custom settings functionality"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             manager = ConfigManager(str(config_file))
@@ -101,7 +98,7 @@ class TestConfigManager:
             assert manager.get_custom_setting("non_existent", "default") == "default"
     
     def test_export_config(self):
-        """Test configuration export"""
+        
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "test_config.yaml"
             export_file = Path(temp_dir) / "exported_config.json"

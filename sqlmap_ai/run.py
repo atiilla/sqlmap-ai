@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-SQLMap AI - Unified CLI Runner
-Supports both simple and enhanced modes for SQL injection testing
-"""
 
 import sys
 import os
@@ -13,18 +9,25 @@ from pathlib import Path
 # Import UI functions
 try:
     from sqlmap_ai.ui import print_info, print_success, print_error, print_warning
+    from sqlmap_ai.startup import run_first_time_setup, show_startup_animation
 except ImportError:
     # Fallback UI functions if sqlmap_ai.ui is not available
     def print_info(msg): print(f"[INFO] {msg}")
     def print_success(msg): print(f"[SUCCESS] {msg}")
     def print_error(msg): print(f"[ERROR] {msg}")
     def print_warning(msg): print(f"[WARNING] {msg}")
+    def run_first_time_setup(): return False
+    def show_startup_animation(): pass
 
 def show_usage():
-    """Show usage information"""
+    
+    try:
+        from sqlmap_ai.startup import print_sqlmapai_logo
+        print_sqlmapai_logo()
+    except ImportError:
+        pass
+    
     print("""
-SQLMap AI - Next Generation AI-Powered SQL Injection Testing
-
 USAGE:
   sqlmap-ai [MODE] [OPTIONS]
 
@@ -50,7 +53,14 @@ For simple mode help: sqlmap-ai --simple --help
 """)
 
 def show_simple_help():
-    """Show simple mode help"""
+    
+    # Show SQLMap-style logo for help
+    try:
+        from sqlmap_ai.startup import print_sqlmapai_logo
+        print_sqlmapai_logo()
+    except ImportError:
+        pass
+    
     print("""
 SQLMap AI - Simple Mode Help (Legacy Mode)
 
@@ -83,16 +93,23 @@ EXAMPLES:
   sqlmap-ai --simple
 
 FEATURES:
-  ✓ Basic SQL injection detection
-  ✓ Standard SQLMap functionality
-  ✓ Minimal dependencies
-  ✓ Fast execution
-  ✓ Simple text output
-  ✓ Basic result saving
+  * Basic SQL injection detection
+  * Standard SQLMap functionality
+  * Minimal dependencies
+  * Fast execution
+  * Simple text output
+  * Basic result saving
 """)
 
 def show_enhanced_help():
-    """Show enhanced mode help"""
+    
+    # Show SQLMap-style logo for help
+    try:
+        from sqlmap_ai.startup import print_sqlmapai_logo
+        print_sqlmapai_logo()
+    except ImportError:
+        pass
+    
     print("""
 SQLMap AI - Enhanced Mode Help (AI-Powered Mode)
 
@@ -159,19 +176,19 @@ EXAMPLES:
   sqlmap-ai --enhanced --config-wizard
 
 FEATURES:
-  ✓ AI-powered vulnerability analysis
-  ✓ Adaptive testing strategies
-  ✓ WAF evasion techniques
-  ✓ Beautiful HTML reports
-  ✓ Risk assessment and remediation guidance
-  ✓ Interactive CLI with progress tracking
-  ✓ Multiple AI providers (Groq, OpenAI, Anthropic, Ollama)
-  ✓ Advanced configuration management
-  ✓ Comprehensive logging and audit trails
+  * AI-powered vulnerability analysis
+  * Adaptive testing strategies
+  * WAF evasion techniques
+  * Beautiful HTML reports
+  * Risk assessment and remediation guidance
+  * Interactive CLI with progress tracking
+  * Multiple AI providers (Groq, OpenAI, Anthropic, Ollama)
+  * Advanced configuration management
+  * Comprehensive logging and audit trails
 """)
 
 def create_simple_parser():
-    """Create parser for simple mode"""
+    
     parser = argparse.ArgumentParser(
         description="SQLMap AI - Simple Mode (Legacy Mode)",
         add_help=False
@@ -197,8 +214,8 @@ def create_simple_parser():
     return parser
 
 def run_simple_mode():
-    """Run in simple mode - basic SQLMap functionality"""
-    print("🔧 Starting SQLMap AI in SIMPLE mode (Legacy Mode)...")
+    
+    print("[INFO] Starting SQLMap AI in SIMPLE mode (Legacy Mode)...")
     print("This mode provides basic SQL injection testing without AI features.")
     print()
     
@@ -278,8 +295,8 @@ def run_simple_mode():
         print_info("Try enhanced mode for more features and better error handling")
 
 def run_enhanced_mode():
-    """Run in enhanced mode - full AI-powered features"""
-    print("🚀 Starting SQLMap AI in ENHANCED mode (AI-Powered Mode)...")
+    
+    print("Starting SQLMap AI in ENHANCED mode (AI-Powered Mode)...")
     print("This mode includes AI-powered analysis, adaptive testing, and advanced features.")
     print()
     
@@ -294,7 +311,9 @@ def run_enhanced_mode():
         run_simple_mode()
 
 def main():
-    """Main entry point with mode selection"""
+    
+    # Check if this is a first run and show startup animation
+    first_run = run_first_time_setup()
     
     # Check for mode-specific help first
     if "--simple" in sys.argv:
@@ -309,6 +328,9 @@ def main():
     
     # Check for general help
     if len(sys.argv) == 1 or "--help" in sys.argv or "-h" in sys.argv:
+        # Show startup animation if no arguments provided
+        if len(sys.argv) == 1 and not first_run:
+            show_startup_animation()
         show_usage()
         return
     

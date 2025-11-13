@@ -13,6 +13,7 @@ from sqlmap_ai.ui import (
     get_user_choice,
     confirm_save_report
 )
+from sqlmap_ai.startup import show_startup_animation
 from sqlmap_ai.enhanced_cli import create_cli, handle_cli_commands, EnhancedCLI
 from sqlmap_ai.config_manager import config_manager, get_config, calculate_adaptive_timeout
 from sqlmap_ai.security_manager import security_manager, SecurityError
@@ -26,7 +27,7 @@ from sqlmap_ai.evasion_engine import evasion_engine
 from utils.ai_providers import ai_manager, get_available_ai_providers, AIProvider
 from typing import Optional
 def main():
-    """Enhanced main function with improved CLI and security"""
+    
     # Create enhanced CLI parser
     parser = create_cli()
     args = parser.parse_args()
@@ -103,7 +104,7 @@ def main():
 
 
 def build_sqlmap_options(args) -> list:
-    """Build SQLMap options from CLI arguments"""
+    
     options = ["--batch"]  # Always use batch mode for automation
     
     config = get_config()
@@ -149,7 +150,7 @@ def build_sqlmap_options(args) -> list:
 
 
 def run_enhanced_adaptive_mode(runner, target_url, user_timeout, interactive_mode, args):
-    """Run enhanced adaptive mode with AI integration"""
+    
     print_info("Starting enhanced adaptive testing sequence...")
     print_info("This mode integrates AI analysis and advanced evasion techniques")
 
@@ -176,7 +177,7 @@ def run_enhanced_adaptive_mode(runner, target_url, user_timeout, interactive_mod
 
 
 def run_enhanced_standard_mode(runner, target_url, user_timeout, interactive_mode, args):
-    """Run enhanced standard mode"""
+    
     print_info("Starting enhanced standard testing...")
     
     # Determine AI provider from arguments
@@ -209,7 +210,7 @@ def run_enhanced_standard_mode(runner, target_url, user_timeout, interactive_mod
 
 
 async def enhance_with_ai_analysis(result, target_url, args):
-    """Enhance scan results with AI analysis"""
+    
     if not result:
         return
     
@@ -269,7 +270,7 @@ async def enhance_with_ai_analysis(result, target_url, args):
 
 
 def generate_enhanced_reports(result, args):
-    """Generate enhanced reports with multiple formats"""
+    
     print_info("Creating beautiful HTML report...")
 
     config = get_config()
@@ -304,7 +305,7 @@ def generate_enhanced_reports(result, args):
 
 
 def _transform_result_for_report(result, timestamp):
-    """Transform adaptive test result into format expected by HTML reporter"""
+    
     # If result already has scan_info (from non-adaptive mode), return as is
     if "scan_info" in result:
         if "timestamp" not in result:
@@ -610,7 +611,7 @@ def confirm_additional_step():
             print("Please answer with 'y' or 'n'.")
 
 def extract_url_from_request_file(request_file_path: str) -> Optional[str]:
-    """Extract target URL from HTTP request file"""
+    
     try:
         with open(request_file_path, 'r', encoding='utf-8') as f:
             content = f.read().strip()
@@ -651,7 +652,7 @@ def extract_url_from_request_file(request_file_path: str) -> Optional[str]:
         return None
 
 def get_target_url_from_args(args) -> Optional[str]:
-    """Get target URL from either URL argument or request file"""
+    
     if args.url:
         return args.url
     elif args.request_file:
@@ -659,8 +660,8 @@ def get_target_url_from_args(args) -> Optional[str]:
     return None
 
 def main_simple():
-    """Simple mode - basic SQL injection testing without AI features"""
-    print("🔧 SQLMap AI Simple Mode")
+    
+    print("[INFO] SQLMap AI Simple Mode")
     print("=" * 50)
     
     # Get target URL

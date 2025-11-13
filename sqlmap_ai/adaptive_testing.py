@@ -24,7 +24,7 @@ class AdaptiveTestingEngine:
         self.test_parameter = test_parameter  # Specific parameter(s) to test
 
     def _add_param_option(self, options: List[str]) -> List[str]:
-        """Add -p parameter option if specified"""
+        
         if self.test_parameter:
             options.append(f"-p {self.test_parameter}")
         return options

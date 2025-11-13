@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-SQLMap AI CLI Entry Point
-Handles installation tasks and provides the main interface
-"""
-
 import sys
 import os
 import subprocess
@@ -16,7 +11,6 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 def check_sqlmap_installation() -> bool:
-    """Check if SQLMap is installed and accessible"""
     try:
         # Try to run sqlmap --version
         result = subprocess.run(
@@ -30,14 +24,13 @@ def check_sqlmap_installation() -> bool:
         return False
 
 def install_sqlmap() -> bool:
-    """Install SQLMap if not already installed"""
-    print("🔍 Checking SQLMap installation...")
+    print("[INFO] Checking SQLMap installation...")
     
     if check_sqlmap_installation():
-        print("✅ SQLMap is already installed")
+        print("[SUCCESS] SQLMap is already installed")
         return True
     
-    print("📦 SQLMap not found. Installing...")
+    print("[INFO] SQLMap not found. Installing...")
     
     # Try pip installation first
     try:
@@ -49,10 +42,10 @@ def install_sqlmap() -> bool:
             timeout=60
         )
         if result.returncode == 0:
-            print("✅ SQLMap installed via pip")
+            print("[SUCCESS] SQLMap installed via pip")
             return True
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        print(f"  ❌ Pip installation failed: {e}")
+        print(f"  [ERROR] Pip installation failed: {e}")
     
     # Try git clone as fallback
     try:
@@ -68,12 +61,12 @@ def install_sqlmap() -> bool:
                 timeout=120
             )
             if result.returncode == 0:
-                print("✅ SQLMap cloned from repository")
+                print("[SUCCESS] SQLMap cloned from repository")
                 return True
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        print(f"  ❌ Git clone failed: {e}")
+        print(f"  [ERROR] Git clone failed: {e}")
     
-    print("❌ Failed to install SQLMap automatically")
+    print("[ERROR] Failed to install SQLMap automatically")
     print("Please install SQLMap manually:")
     print("  pip install sqlmap")
     print("  or")
@@ -81,14 +74,14 @@ def install_sqlmap() -> bool:
     return False
 
 def create_env_template() -> bool:
-    """Create .env template if it doesn't exist"""
+    
     # Use current working directory instead of project root
     env_file = Path.cwd() / ".env"
     if env_file.exists():
-        print("✅ .env file already exists")
+        print("[SUCCESS] .env file already exists")
         return True
     
-    print("📝 Creating .env template...")
+    print("[INFO] Creating .env template...")
     
     env_content = """# SQLMap AI Configuration
 # Copy this to .env file and fill in your API keys
@@ -125,16 +118,16 @@ DEFAULT_TIMEOUT=300
     try:
         with open(env_file, 'w') as f:
             f.write(env_content)
-        print("✅ .env template created")
+        print("[SUCCESS] .env template created")
         print("  Please edit .env file and add your API keys")
         return True
     except Exception as e:
-        print(f"❌ Failed to create .env template: {e}")
+        print(f"[ERROR] Failed to create .env template: {e}")
         return False
 
 def setup_directories() -> bool:
-    """Create necessary directories"""
-    print("📁 Setting up directories...")
+    
+    print("[INFO] Setting up directories...")
     
     directories = [
         Path.cwd() / "reports",
@@ -145,25 +138,25 @@ def setup_directories() -> bool:
     try:
         for directory in directories:
             directory.mkdir(exist_ok=True)
-        print("✅ Directories created")
+        print("[SUCCESS] Directories created")
         return True
     except Exception as e:
-        print(f"❌ Failed to create directories: {e}")
+        print(f"[ERROR] Failed to create directories: {e}")
         return False
 
 def run_installation_checks() -> bool:
-    """Run all installation checks and setup tasks"""
-    print("🚀 SQLMap AI Installation Check")
+    
+    print("SQLMap AI Installation Check")
     print("=" * 50)
     
     success = True
     
     # Check Python version
     if sys.version_info < (3, 8):
-        print("❌ Python 3.8 or higher is required")
+        print("[ERROR] Python 3.8 or higher is required")
         return False
     
-    print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print(f"[SUCCESS] Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
     
     # Install SQLMap
     if not install_sqlmap():
@@ -178,37 +171,45 @@ def run_installation_checks() -> bool:
         success = False
     
     if success:
-        print("\n🎉 Installation check completed successfully!")
+        print("\nInstallation check completed successfully!")
         print("\nNext steps:")
         print("1. Edit .env file and add your API keys")
         print("2. Run: sqlmap-ai --config-wizard")
         print("3. Run: sqlmap-ai --help")
     else:
-        print("\n⚠️  Installation check completed with issues")
+        print("\n[WARNING] Installation check completed with issues")
         print("Please resolve the issues above before using SQLMap AI")
     
     return success
 
 def main():
-    """Main CLI entry point"""
-    # Check if this is the first run (installation check)
-    if len(sys.argv) == 1 or "--install-check" in sys.argv:
+    
+    # Import and run the main application with new startup system
+    try:
+        # Import the main run.py from project root
+        import sys
+        from pathlib import Path
+        
+        # Add project root to path
+        project_root = Path(__file__).parent.parent
+        sys.path.insert(0, str(project_root))
+        
+        from sqlmap_ai.run import main as run_main
+        run_main()
+        
+    except ImportError as e:
+        print(f"[ERROR] Failed to import main application: {e}")
+        print("Running fallback installation check...")
+        
+        # Fallback to old installation check if new system fails
         if run_installation_checks():
+            print("\nTry running 'sqlmap-ai' again after installation completes.")
             sys.exit(0)
         else:
             sys.exit(1)
-
-    # Import and run the main application
-    try:
-        from sqlmap_ai.run import main as run_main
-        run_main()
-    except ImportError as e:
-        print(f"❌ Failed to import main application: {e}")
-        print("Please ensure all dependencies are installed:")
-        print("  pip install -e .")
-        sys.exit(1)
+            
     except Exception as e:
-        print(f"❌ Application error: {e}")
+        print(f"[ERROR] Application error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
