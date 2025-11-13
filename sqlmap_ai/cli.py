@@ -197,10 +197,10 @@ def main():
             sys.exit(0)
         else:
             sys.exit(1)
-    
+
     # Import and run the main application
     try:
-        from run import main as run_main
+        from sqlmap_ai.run import main as run_main
         run_main()
     except ImportError as e:
         print(f"❌ Failed to import main application: {e}")
