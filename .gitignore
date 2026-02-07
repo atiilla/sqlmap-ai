@@ -22,6 +22,7 @@ sqlmap_ai.egg-info/
 .sqlmap_ai_key
 dist/
 documentation/
+site/
 pypi-upload.sh
 test/.sqlmap_ai_first_run
 test/config.yaml

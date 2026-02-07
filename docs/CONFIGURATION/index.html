@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Atilla" /><link rel="canonical" href="https://atiilla.github.io/sqlmap-ai/CONFIGURATION/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Configuration - SQLMap AI Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Configuration";
+        var mkdocs_page_input_path = "CONFIGURATION.md";
+        var mkdocs_page_url = "/sqlmap-ai/CONFIGURATION/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/http.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SQLMap AI Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../INSTALLATION/">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../USAGE/">Usage Guide</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Configuration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#env-file">.env File</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configyaml">config.yaml</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command-Line Options</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#target-specification">Target Specification</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#parameter-testing">Parameter Testing</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scanning-options">Scanning Options</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ai-configuration">AI Configuration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#waf-evasion">WAF Evasion</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#output-options">Output Options</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration-commands">Configuration Commands</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../TROUBLESHOOTING/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG/">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SQLMap AI Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/atiilla/sqlmap-ai/edit/main/docs/CONFIGURATION.md">Edit on atiilla/sqlmap-ai</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
+<h2 id="env-file">.env File<a class="headerlink" href="#env-file" title="Permanent link">&para;</a></h2>
+<p>Created automatically by <code>sqlmap-ai --install-check</code>:</p>
+<pre class="codehilite"><code class="language-bash"># AI Provider API Keys
+GROQ_API_KEY=your_groq_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# Ollama Settings (if using local AI)
+ENABLE_OLLAMA=false
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+
+# Security Settings
+MAX_REQUESTS_PER_MINUTE=60
+SAFE_MODE=true
+AUDIT_LOGGING=true
+</code></pre>
+
+<h2 id="configyaml">config.yaml<a class="headerlink" href="#configyaml" title="Permanent link">&para;</a></h2>
+<p>Created automatically by <code>sqlmap-ai --config-wizard</code>:</p>
+<pre class="codehilite"><code class="language-yaml">version: &quot;2.0&quot;
+security:
+  safe_mode: true
+  max_requests_per_minute: 60
+  audit_logging: true
+  allow_private_networks: true  # Set to false to block local/private IP targets
+
+sqlmap:
+  default_timeout: 120
+  default_risk: 1
+  default_level: 1
+  default_threads: 5
+
+ui:
+  show_banner: true
+  interactive_mode: false
+</code></pre>
+
+<h2 id="command-line-options">Command-Line Options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h2>
+<h3 id="target-specification">Target Specification<a class="headerlink" href="#target-specification" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">-u, --url URL              Target URL (e.g., &quot;http://example.com/page?id=1&quot;)
+-r, --request FILE         Load HTTP request from file (Burp/ZAP/Browser)
+</code></pre>
+
+<h3 id="parameter-testing">Parameter Testing<a class="headerlink" href="#parameter-testing" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">-p, --param PARAMS         Test specific parameter(s) (comma-separated)
+                          Examples: -p id | -p id,username,token
+</code></pre>
+
+<h3 id="scanning-options">Scanning Options<a class="headerlink" href="#scanning-options" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">--adaptive                 Use adaptive step-by-step testing
+--aggressive               Aggressive testing (risk=3, level=5)
+--stealth                  Stealth mode (slower, more evasive)
+--timeout SECONDS          Scan timeout in seconds (default: 120)
+--threads NUM              Number of threads 1-20 (default: 5)
+--risk LEVEL               Risk level 1-3 (default: 1)
+--level LEVEL              Test level 1-5 (default: 1)
+</code></pre>
+
+<h3 id="ai-configuration">AI Configuration<a class="headerlink" href="#ai-configuration" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">--ai-provider PROVIDER     AI provider: groq|openai|anthropic|ollama|auto
+--disable-ai               Disable AI analysis
+--ollama-model MODEL       Specific Ollama model to use
+</code></pre>
+
+<h3 id="waf-evasion">WAF Evasion<a class="headerlink" href="#waf-evasion" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">--tamper SCRIPTS           Tamper scripts (comma-separated)
+--auto-tamper              Auto-select tamper scripts based on WAF
+--random-agent             Use random User-Agent
+</code></pre>
+
+<h3 id="output-options">Output Options<a class="headerlink" href="#output-options" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">--output-dir DIR           Output directory for reports (default: reports)
+--output-format FORMAT     Output format: html|json|text
+--save-json                Save results as JSON
+</code></pre>
+
+<h3 id="configuration-commands">Configuration Commands<a class="headerlink" href="#configuration-commands" title="Permanent link">&para;</a></h3>
+<pre class="codehilite"><code class="language-bash">--config-wizard            Run interactive configuration wizard
+--check-providers          Check AI provider availability
+--list-ollama-models       List available Ollama models
+--install-check            Check installation and create config files
+--validate-config          Validate current configuration
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../USAGE/" class="btn btn-neutral float-left" title="Usage Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../TROUBLESHOOTING/" class="btn btn-neutral float-right" title="Troubleshooting">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/atiilla/sqlmap-ai" class="fa fa-code-fork" style="color: #fcfcfc"> atiilla/sqlmap-ai</a>
+        </span>
+    
+    
+      <span><a href="../USAGE/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../TROUBLESHOOTING/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

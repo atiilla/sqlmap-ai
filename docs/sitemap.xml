@@ -1,35 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/</loc>
-         <lastmod>2025-08-24</lastmod>
+         <loc>https://atiilla.github.io/sqlmap-ai/</loc>
+         <lastmod>2026-02-07</lastmod>
     </url>
     <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/OVERVIEW/</loc>
-         <lastmod>2025-08-24</lastmod>
+         <loc>https://atiilla.github.io/sqlmap-ai/CHANGELOG/</loc>
+         <lastmod>2026-02-07</lastmod>
     </url>
     <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/examples/basic-examples/</loc>
-         <lastmod>2025-08-24</lastmod>
+         <loc>https://atiilla.github.io/sqlmap-ai/CONFIGURATION/</loc>
+         <lastmod>2026-02-07</lastmod>
     </url>
     <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/getting-started/ai-providers/</loc>
-         <lastmod>2025-08-24</lastmod>
+         <loc>https://atiilla.github.io/sqlmap-ai/INSTALLATION/</loc>
+         <lastmod>2026-02-07</lastmod>
     </url>
     <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/getting-started/configuration/</loc>
-         <lastmod>2025-08-24</lastmod>
+         <loc>https://atiilla.github.io/sqlmap-ai/TROUBLESHOOTING/</loc>
+         <lastmod>2026-02-07</lastmod>
     </url>
     <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/getting-started/installation/</loc>
-         <lastmod>2025-08-24</lastmod>
-    </url>
-    <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/getting-started/quick-start/</loc>
-         <lastmod>2025-08-24</lastmod>
-    </url>
-    <url>
-         <loc>https://github.com/atiilla/sqlmap-ai/user-guide/basic-usage/</loc>
-         <lastmod>2025-08-24</lastmod>
+         <loc>https://atiilla.github.io/sqlmap-ai/USAGE/</loc>
+         <lastmod>2026-02-07</lastmod>
     </url>
 </urlset>

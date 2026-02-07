@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 class AIProvider(Enum):
     # Available AI providers
     GROQ = "groq"
+    DEEPSEEK = "deepseek"
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
@@ -76,6 +77,14 @@ class AIProviderManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize Groq: {e}")
         
+        # Setup DeepSeek
+        if openai and os.getenv("DEEPSEEK_API_KEY"):
+            try:
+                self.providers[AIProvider.DEEPSEEK] = DeepSeekProvider()
+                self.active_providers.append(AIProvider.DEEPSEEK)
+            except Exception as e:
+                logger.warning(f"Failed to initialize DeepSeek: {e}")
+
         # Setup OpenAI
         if openai and os.getenv("OPENAI_API_KEY"):
             try:
@@ -276,6 +285,65 @@ class OpenAIProvider(BaseAIProvider):
                     return AIResponse(
                         content="",
                         provider=AIProvider.OPENAI,
+                        model=model,
+                        response_time=time.time() - start_time,
+                        success=False,
+                        error=str(e)
+                    )
+                await asyncio.sleep(2 ** attempt)
+
+
+class DeepSeekProvider(BaseAIProvider):
+
+
+    def __init__(self):
+        super().__init__()
+        self.client = openai.AsyncOpenAI(
+            api_key=os.getenv("DEEPSEEK_API_KEY"),
+            base_url="https://api.deepseek.com"
+        )
+        self.default_model = "deepseek-chat"
+        self.rate_limit_delay = 1.0
+
+    async def get_response(
+        self,
+        prompt: str,
+        model: Optional[str] = None,
+        max_retries: int = 3,
+        **kwargs
+    ) -> AIResponse:
+
+
+        model = model or self.default_model
+        start_time = time.time()
+
+        for attempt in range(max_retries):
+            try:
+                await self._rate_limit()
+
+                response = await self.client.chat.completions.create(
+                    messages=[{"role": "user", "content": prompt}],
+                    model=model,
+                    timeout=kwargs.get('timeout', 30),
+                )
+
+                content = response.choices[0].message.content
+                tokens = response.usage.total_tokens if response.usage else 0
+
+                return AIResponse(
+                    content=content,
+                    provider=AIProvider.DEEPSEEK,
+                    model=model,
+                    tokens_used=tokens,
+                    response_time=time.time() - start_time,
+                    success=True
+                )
+
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    return AIResponse(
+                        content="",
+                        provider=AIProvider.DEEPSEEK,
                         model=model,
                         response_time=time.time() - start_time,
                         success=False,

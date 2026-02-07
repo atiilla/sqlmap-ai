@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Atilla" /><link rel="canonical" href="https://atiilla.github.io/sqlmap-ai/USAGE/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Usage Guide - SQLMap AI Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Usage Guide";
+        var mkdocs_page_input_path = "USAGE.md";
+        var mkdocs_page_url = "/sqlmap-ai/USAGE/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/http.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SQLMap AI Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../INSTALLATION/">Installation</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Usage Guide</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#basic-sql-injection-test">Basic SQL Injection Test</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#http-request-file-testing">HTTP Request File Testing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#advanced-testing">Advanced Testing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ai-provider-selection">AI Provider Selection</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#parameter-specific-testing">Parameter-Specific Testing</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#complete-testing-workflow">Complete Testing Workflow</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#testing-modes">Testing Modes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#enhanced-mode-default">Enhanced Mode (Default)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#simple-mode">Simple Mode</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#adaptive-mode">Adaptive Mode</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#advanced-features">Advanced Features</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#adaptive-testing-mode">Adaptive Testing Mode</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../CONFIGURATION/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../TROUBLESHOOTING/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG/">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SQLMap AI Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Usage Guide</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/atiilla/sqlmap-ai/edit/main/docs/USAGE.md">Edit on atiilla/sqlmap-ai</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h1>
+<h2 id="basic-sql-injection-test">Basic SQL Injection Test<a class="headerlink" href="#basic-sql-injection-test" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Test a vulnerable website
+sqlmap-ai -u &quot;http://example.com/page.php?id=1&quot;
+
+# Use specific AI provider
+sqlmap-ai -u &quot;http://example.com/page.php?id=1&quot; --ai-provider groq
+</code></pre>
+
+<h2 id="http-request-file-testing">HTTP Request File Testing<a class="headerlink" href="#http-request-file-testing" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Test using HTTP request capture file
+sqlmap-ai -r request.txt
+
+# Enhanced mode with request file and adaptive testing
+sqlmap-ai --enhanced --adaptive -r request.txt
+
+# With specific AI provider
+sqlmap-ai --enhanced -r request.txt --ai-provider groq
+
+# Simple mode with request file
+sqlmap-ai --simple -r request.txt
+</code></pre>
+
+<p><strong>Request File Format:</strong></p>
+<pre class="codehilite"><code class="language-http">POST /login.php HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 38
+
+username=admin&amp;password=test
+</code></pre>
+
+<p><strong>Creating Request Files:</strong></p>
+<ol>
+<li><strong>From Browser Developer Tools:</strong></li>
+<li>Open Developer Tools (F12)</li>
+<li>Go to Network tab</li>
+<li>Perform the action you want to test</li>
+<li>Right-click the request → Copy → Copy as cURL</li>
+<li>
+<p>Convert cURL to HTTP format</p>
+</li>
+<li>
+<p><strong>From Burp Suite:</strong></p>
+</li>
+<li>Intercept the request</li>
+<li>Right-click → Save item</li>
+<li>
+<p>Save as .txt file</p>
+</li>
+<li>
+<p><strong>From OWASP ZAP:</strong></p>
+</li>
+<li>Right-click request → Export → HTTP Message</li>
+<li>Save as .txt file</li>
+</ol>
+<p><strong>Supported Request Types:</strong>
+ - [x] GET requests with parameters
+ - [x] POST requests with form data
+ - [x] POST requests with JSON data
+ - [x] Requests with cookies
+ - [x] Requests with custom headers
+ - [x] Multipart form data</p>
+<h2 id="advanced-testing">Advanced Testing<a class="headerlink" href="#advanced-testing" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Adaptive testing (recommended)
+sqlmap-ai --enhanced --adaptive -u &quot;http://example.com/page.php?id=1&quot;
+
+# Test specific parameter only
+sqlmap-ai --enhanced -u &quot;http://example.com/page.php?id=1&amp;name=test&quot; -p id
+
+# Simple mode (basic SQLMap without AI)
+sqlmap-ai --simple -u &quot;http://example.com/page.php?id=1&quot;
+
+# Enhanced mode with custom options
+sqlmap-ai --enhanced -u &quot;http://example.com/page.php?id=1&quot; --level 3 --risk 2
+
+# Test with aggressive settings
+sqlmap-ai --enhanced --aggressive -u &quot;http://example.com/page.php?id=1&quot;
+
+# Stealth mode with slower, more evasive testing
+sqlmap-ai --enhanced --stealth -u &quot;http://example.com/page.php?id=1&quot;
+</code></pre>
+
+<h2 id="ai-provider-selection">AI Provider Selection<a class="headerlink" href="#ai-provider-selection" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Use Groq (fastest)
+sqlmap-ai -u &quot;http://example.com/page.php?id=1&quot; --ai-provider groq
+
+# Use Ollama (local, private)
+sqlmap-ai -u &quot;http://example.com/page.php?id=1&quot; --ai-provider ollama
+
+# Use OpenAI
+sqlmap-ai -u &quot;http://example.com/page.php?id=1&quot; --ai-provider openai
+
+# Auto-select best available
+sqlmap-ai -u &quot;http://example.com/page.php?id=1&quot; --ai-provider auto
+</code></pre>
+
+<h2 id="parameter-specific-testing">Parameter-Specific Testing<a class="headerlink" href="#parameter-specific-testing" title="Permanent link">&para;</a></h2>
+<p>Test only specific parameters to save time and focus your testing:</p>
+<pre class="codehilite"><code class="language-bash"># Test only the 'id' parameter
+sqlmap-ai --enhanced -u &quot;http://example.com/page.php?id=1&amp;name=test&quot; -p id
+
+# Test multiple specific parameters
+sqlmap-ai --enhanced -u &quot;http://example.com/login?user=admin&amp;pass=123&amp;token=abc&quot; -p user,pass
+
+# Test with request file and specific parameter
+sqlmap-ai --enhanced -r request.txt -p username
+
+# Adaptive testing on specific parameter
+sqlmap-ai --enhanced --adaptive -r request.txt -p id
+</code></pre>
+
+<p><strong>Benefits:</strong>
+- <strong>Faster Testing</strong> - Skip irrelevant parameters
+- <strong>Focused Analysis</strong> - Concentrate on known vulnerable parameters
+- <strong>Cost Efficient</strong> - Reduce AI API calls for large forms</p>
+<h2 id="complete-testing-workflow">Complete Testing Workflow<a class="headerlink" href="#complete-testing-workflow" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># 1. Basic scan with URL
+sqlmap-ai --enhanced -u &quot;http://example.com/page.php?id=1&quot;
+
+# 2. Test specific parameter only
+sqlmap-ai --enhanced -u &quot;http://example.com/page?id=1&amp;name=test&quot; -p id
+
+# 3. Enhanced scan with request file
+sqlmap-ai --enhanced --adaptive -r captured_request.txt
+
+# 4. Advanced scan with custom options
+sqlmap-ai --enhanced -r request.txt --level 4 --risk 3 --threads 10
+
+# 5. Simple mode for quick testing
+sqlmap-ai --simple -r request.txt --batch
+</code></pre>
+
+<h2 id="testing-modes">Testing Modes<a class="headerlink" href="#testing-modes" title="Permanent link">&para;</a></h2>
+<h3 id="enhanced-mode-default">Enhanced Mode (Default)<a class="headerlink" href="#enhanced-mode-default" title="Permanent link">&para;</a></h3>
+<p>Full AI-powered testing with advanced features:</p>
+<pre class="codehilite"><code class="language-bash"># Basic enhanced scan
+sqlmap-ai --enhanced -u &quot;http://example.com/page.php?id=1&quot;
+
+# With request file
+sqlmap-ai --enhanced -r request.txt
+
+# Adaptive testing with AI analysis
+sqlmap-ai --enhanced --adaptive -r request.txt --ai-provider groq
+</code></pre>
+
+<p><strong>Features:</strong>
+- AI-powered vulnerability analysis
+- Adaptive testing strategies
+- WAF evasion techniques
+- <strong>Beautiful HTML reports</strong> with comprehensive details
+- Risk assessment and remediation guidance
+- Interactive CLI with progress tracking
+- Multiple AI providers (Groq, OpenAI, Anthropic, Ollama)
+- Advanced configuration management
+- Request file support
+- Parameter-specific testing with <code>-p</code> option</p>
+<p><strong>Enhanced HTML Reports Include:</strong>
+- [x] <strong>Vulnerability Details</strong> - Complete parameter analysis with injection payloads
+- [x] <strong>Database Information</strong> - All discovered databases with tables and columns
+- [x] <strong>Scan History</strong> - Detailed step-by-step findings with sample payloads
+- [x] <strong>Risk Assessment</strong> - Overall risk level and vulnerability counts
+- [x] <strong>AI Recommendations</strong> - Smart suggestions for remediation
+- [x] <strong>Interactive Charts</strong> - Visual representation of scan results
+- [x] <strong>Export Ready</strong> - Professional format for security reports</p>
+<h3 id="simple-mode">Simple Mode<a class="headerlink" href="#simple-mode" title="Permanent link">&para;</a></h3>
+<p>Basic SQL injection testing without AI features:</p>
+<pre class="codehilite"><code class="language-bash"># Basic simple scan
+sqlmap-ai --simple -u &quot;http://example.com/page.php?id=1&quot;
+
+# With request file
+sqlmap-ai --simple -r request.txt
+
+# Quick batch mode
+sqlmap-ai --simple -r request.txt --batch
+</code></pre>
+
+<p><strong>Features:</strong>
+- Basic SQL injection detection
+- Standard SQLMap functionality
+- Minimal dependencies
+- Fast execution
+- Request file support
+- Simple text output
+- Basic result saving</p>
+<h3 id="adaptive-mode">Adaptive Mode<a class="headerlink" href="#adaptive-mode" title="Permanent link">&para;</a></h3>
+<p>Intelligent step-by-step testing that adapts to the target:</p>
+<pre class="codehilite"><code class="language-bash"># Full adaptive testing
+sqlmap-ai --enhanced --adaptive -r request.txt
+
+# With specific AI provider
+sqlmap-ai --enhanced --adaptive -r request.txt --ai-provider groq
+</code></pre>
+
+<p><strong>Adaptive Steps:</strong>
+1. <strong>Initial Assessment</strong> - Quick vulnerability check
+   - Tests for SQL injection with basic techniques
+   - Identifies vulnerable parameters
+   - Discovers initial database information</p>
+<ol>
+<li><strong>DBMS Identification</strong> - Detect specific database type</li>
+<li>Identifies MySQL, PostgreSQL, Oracle, MSSQL, etc.</li>
+<li>Enables database-specific attack optimization</li>
+<li>
+<p>Detects WAF/IPS presence</p>
+</li>
+<li>
+<p><strong>Enhanced Database Testing</strong> - Deep database enumeration</p>
+</li>
+<li>Enumerates all databases and tables</li>
+<li>Extracts table structures and column names</li>
+<li>
+<p>Adapts based on discovered schema</p>
+</li>
+<li>
+<p><strong>Data Extraction</strong> - Extract sensitive information</p>
+</li>
+<li>Dumps data from identified tables</li>
+<li>Targets high-value tables (users, credentials, etc.)</li>
+<li>
+<p>Uses optimized extraction techniques</p>
+</li>
+<li>
+<p><strong>Enhanced Testing</strong> - Aggressive vulnerability testing</p>
+</li>
+<li>Increases risk and level settings</li>
+<li>Tests for advanced injection types</li>
+<li>
+<p>Attempts privilege escalation techniques</p>
+</li>
+<li>
+<p><strong>Alternative Testing</strong> - Test additional attack vectors</p>
+</li>
+<li>POST parameters and request body</li>
+<li>Cookies and session data</li>
+<li>HTTP headers (User-Agent, Referer, etc.)</li>
+</ol>
+<h2 id="advanced-features">Advanced Features<a class="headerlink" href="#advanced-features" title="Permanent link">&para;</a></h2>
+<h3 id="adaptive-testing-mode">Adaptive Testing Mode<a class="headerlink" href="#adaptive-testing-mode" title="Permanent link">&para;</a></h3>
+<p>Automatically adapts testing strategy based on target response and discovered information:</p>
+<pre class="codehilite"><code class="language-bash"># Enable adaptive mode
+sqlmap-ai --enhanced --adaptive -u &quot;http://example.com/page.php?id=1&quot;
+
+# With request file
+sqlmap-ai --enhanced --adaptive -r request.txt
+
+# With specific parameter
+sqlmap-ai --enhanced --adaptive -r request.txt -p id
+</code></pre>
+
+<p><strong>How Adaptive Testing Works:</strong></p>
+<p>The adaptive engine intelligently sequences through 6 testing phases, adjusting strategy based on what it discovers:</p>
+<ol>
+<li><strong>Initial Assessment</strong> - Quick vulnerability identification</li>
+<li><strong>DBMS Identification</strong> - Database fingerprinting and WAF detection</li>
+<li><strong>Enhanced Database Testing</strong> - Complete schema enumeration</li>
+<li><strong>Data Extraction</strong> - Targeted data dumping from sensitive tables</li>
+<li><strong>Enhanced Testing</strong> - Aggressive techniques if databases found</li>
+<li><strong>Alternative Testing</strong> - Additional attack vectors (POST, cookies, headers)</li>
+</ol>
+<p>Each step builds on previous discoveries, ensuring efficient and thorough testing while minimizing unnecessary requests.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../INSTALLATION/" class="btn btn-neutral float-left" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../CONFIGURATION/" class="btn btn-neutral float-right" title="Configuration">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/atiilla/sqlmap-ai" class="fa fa-code-fork" style="color: #fcfcfc"> atiilla/sqlmap-ai</a>
+        </span>
+    
+    
+      <span><a href="../INSTALLATION/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../CONFIGURATION/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

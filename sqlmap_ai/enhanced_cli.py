@@ -94,7 +94,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
         ai_group = parser.add_argument_group('AI Configuration')
         ai_group.add_argument(
             '--ai-provider',
-            choices=['groq', 'openai', 'anthropic', 'local', 'ollama', 'auto'],
+            choices=['groq', 'deepseek', 'openai', 'anthropic', 'local', 'ollama', 'auto'],
             default='auto',
             help='AI provider to use (default: auto)'
         )
@@ -296,25 +296,27 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
 
         provider_options = [
             ("1", "Groq", "Fast and free API (recommended for beginners)"),
-            ("2", "OpenAI", "GPT models (requires paid API key)"),
-            ("3", "Anthropic", "Claude models (requires paid API key)"),
-            ("4", "Ollama", "Local AI provider (free, requires Ollama installation)"),
+            ("2", "DeepSeek", "DeepSeek models (affordable API key)"),
+            ("3", "OpenAI", "GPT models (requires paid API key)"),
+            ("4", "Anthropic", "Claude models (requires paid API key)"),
+            ("5", "Ollama", "Local AI provider (free, requires Ollama installation)"),
         ]
 
         for num, name, desc in provider_options:
             self.console.print(f"  [bold]{num}.[/bold] {name} - {desc}")
 
         while True:
-            choice = Prompt.ask("\nSelect provider (1-4)", default="1")
-            if choice in ["1", "2", "3", "4"]:
+            choice = Prompt.ask("\nSelect provider (1-5)", default="1")
+            if choice in ["1", "2", "3", "4", "5"]:
                 break
-            self.console.print("[red]Invalid choice. Please enter 1, 2, 3, or 4.[/red]")
+            self.console.print("[red]Invalid choice. Please enter 1, 2, 3, 4, or 5.[/red]")
 
         provider_map = {
             "1": ("groq", "Groq", "GROQ_API_KEY"),
-            "2": ("openai", "OpenAI", "OPENAI_API_KEY"),
-            "3": ("anthropic", "Anthropic", "ANTHROPIC_API_KEY"),
-            "4": ("ollama", "Ollama", None)
+            "2": ("deepseek", "DeepSeek", "DEEPSEEK_API_KEY"),
+            "3": ("openai", "OpenAI", "OPENAI_API_KEY"),
+            "4": ("anthropic", "Anthropic", "ANTHROPIC_API_KEY"),
+            "5": ("ollama", "Ollama", None)
         }
 
         selected_provider, provider_name, env_var = provider_map[choice]
@@ -328,7 +330,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             # Update config to set Ollama as primary provider
             config_manager.update_ai_provider("ollama", enabled=True, priority=1)
             # Disable other providers or set lower priority
-            for other_provider in ["groq", "openai", "anthropic"]:
+            for other_provider in ["groq", "deepseek", "openai", "anthropic"]:
                 config_manager.update_ai_provider(other_provider, enabled=False)
         else:
             # Handle API key-based providers
@@ -342,7 +344,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
                     # Key exists and user doesn't want to change it, just enable the provider
                     config_manager.update_ai_provider(selected_provider, enabled=True, priority=1)
                     # Disable other providers
-                    for other_provider in ["groq", "openai", "anthropic", "ollama"]:
+                    for other_provider in ["groq", "deepseek", "openai", "anthropic", "ollama"]:
                         if other_provider != selected_provider:
                             config_manager.update_ai_provider(other_provider, enabled=False)
                     self.console.print(f"[green]✓ {provider_name} is now configured as your primary AI provider[/green]")
@@ -355,6 +357,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
 
             api_urls = {
                 "groq": "https://console.groq.com/keys",
+                "deepseek": "https://platform.deepseek.com/api_keys",
                 "openai": "https://platform.openai.com/api-keys",
                 "anthropic": "https://console.anthropic.com/settings/keys"
             }
@@ -619,6 +622,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             
             providers = {
                 'Groq': 'GROQ_API_KEY',
+                'DeepSeek': 'DEEPSEEK_API_KEY',
                 'OpenAI': 'OPENAI_API_KEY',
                 'Anthropic': 'ANTHROPIC_API_KEY',
                 'Ollama': 'ENABLE_OLLAMA'
@@ -639,6 +643,7 @@ For more information, visit: https://github.com/atiilla/sqlmap-ai
             print("\nAI Provider Status:")
             providers = {
                 'Groq': 'GROQ_API_KEY',
+                'DeepSeek': 'DEEPSEEK_API_KEY',
                 'OpenAI': 'OPENAI_API_KEY',
                 'Anthropic': 'ANTHROPIC_API_KEY',
                 'Ollama': 'ENABLE_OLLAMA'

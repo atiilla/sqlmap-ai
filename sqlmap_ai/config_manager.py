@@ -139,6 +139,16 @@ class ConfigManager:
                 rate_limit=0.5,
                 priority=1
             ),
+            "deepseek": AIProviderConfig(
+                name="deepseek",
+                enabled=bool(os.getenv("DEEPSEEK_API_KEY")),
+                api_key_env="DEEPSEEK_API_KEY",
+                model="deepseek-chat",
+                max_tokens=4096,
+                timeout=30,
+                rate_limit=1.0,
+                priority=2
+            ),
             "openai": AIProviderConfig(
                 name="openai",
                 enabled=bool(os.getenv("OPENAI_API_KEY")),
@@ -147,7 +157,7 @@ class ConfigManager:
                 max_tokens=4096,
                 timeout=30,
                 rate_limit=1.0,
-                priority=2
+                priority=3
             ),
             "anthropic": AIProviderConfig(
                 name="anthropic",
@@ -157,7 +167,7 @@ class ConfigManager:
                 max_tokens=4096,
                 timeout=30,
                 rate_limit=1.0,
-                priority=3
+                priority=4
             ),
             "local": AIProviderConfig(
                 name="local",
@@ -167,7 +177,7 @@ class ConfigManager:
                 max_tokens=512,
                 timeout=60,
                 rate_limit=0.1,
-                priority=5
+                priority=6
             ),
             "ollama": AIProviderConfig(
                 name="ollama",
@@ -177,7 +187,7 @@ class ConfigManager:
                 max_tokens=4096,
                 timeout=60,
                 rate_limit=0.5,
-                priority=4
+                priority=5
             )
         }
 

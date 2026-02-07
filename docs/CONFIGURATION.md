@@ -7,6 +7,7 @@ Created automatically by `sqlmap-ai --install-check`:
 ```bash
 # AI Provider API Keys
 GROQ_API_KEY=your_groq_api_key_here
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
@@ -71,7 +72,7 @@ ui:
 
 ### AI Configuration
 ```bash
---ai-provider PROVIDER     AI provider: groq|openai|anthropic|ollama|auto
+--ai-provider PROVIDER     AI provider: groq|deepseek|openai|anthropic|ollama|auto
 --disable-ai               Disable AI analysis
 --ollama-model MODEL       Specific Ollama model to use
 ```

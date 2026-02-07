@@ -127,7 +127,7 @@ OPTIONS:
     --crawl DEPTH           Crawl website starting from target URL (depth: 1-3)
 
   AI Configuration:
-    --ai-provider PROVIDER  AI provider to use (groq, openai, anthropic, ollama, auto)
+    --ai-provider PROVIDER  AI provider to use (groq, deepseek, openai, anthropic, ollama, auto)
     --adaptive              Enable adaptive step-by-step testing
     --ai-analysis           Enable AI-powered result analysis
 
@@ -182,7 +182,7 @@ FEATURES:
   * Beautiful HTML reports
   * Risk assessment and remediation guidance
   * Interactive CLI with progress tracking
-  * Multiple AI providers (Groq, OpenAI, Anthropic, Ollama)
+  * Multiple AI providers (Groq, DeepSeek, OpenAI, Anthropic, Ollama)
   * Advanced configuration management
   * Comprehensive logging and audit trails
 """)

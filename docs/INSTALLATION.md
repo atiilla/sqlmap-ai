@@ -55,21 +55,28 @@ Choose one or more AI providers to use:
 GROQ_API_KEY=your_groq_api_key_here
 ```
 
-### Option B: OpenAI
+### Option B: DeepSeek (Affordable)
+1. Get an API key from [https://platform.deepseek.com](https://platform.deepseek.com)
+2. Add to your `.env` file:
+```bash
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+```
+
+### Option C: OpenAI
 1. Get an API key from [https://platform.openai.com](https://platform.openai.com)
 2. Add to your `.env` file:
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-### Option C: Anthropic (Claude)
+### Option D: Anthropic (Claude)
 1. Get an API key from [https://console.anthropic.com](https://console.anthropic.com)
 2. Add to your `.env` file:
 ```bash
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-### Option D: Ollama (Local AI - Privacy Focused)
+### Option E: Ollama (Local AI - Privacy Focused)
 1. Install Ollama: [https://ollama.ai/download](https://ollama.ai/download)
 2. Start Ollama service:
 ```bash
@@ -131,6 +138,7 @@ sqlmap-ai --list-ollama-models
 | Provider | Setup | Speed | Privacy | Cost |
 |----------|-------|-------|---------|------|
 | **Groq** | API Key | Fastest | Cloud | Free tier available |
+| **DeepSeek** | API Key | Fast | Cloud | Affordable |
 | **OpenAI** | API Key | Fast | Cloud | Pay per use |
 | **Anthropic** | API Key | Fast | Cloud | Pay per use |
 | **Ollama** | Local install | Fast | Local | Free |

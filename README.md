@@ -15,6 +15,7 @@ An AI-powered wrapper around SQLMap that makes SQL injection testing more access
 
 ### AI Providers
 - **Groq** - Fastest AI analysis (recommended)
+- **DeepSeek** - Affordable and capable analysis
 - **OpenAI** - GPT-4 powered analysis
 - **Anthropic Claude** - Advanced reasoning
 - **Ollama** - Local, private AI (no cloud required)

@@ -1,160 +1,36 @@
 site_name: SQLMap AI Documentation
 site_description: AI-powered SQL injection testing tool with multiple AI providers
 site_author: Atilla
-site_url: https://github.com/atiilla/sqlmap-ai
+site_url: https://atiilla.github.io/sqlmap-ai/
 
 repo_name: atiilla/sqlmap-ai
 repo_url: https://github.com/atiilla/sqlmap-ai
 edit_uri: edit/main/docs/
 
-docs_dir: documentation
-site_dir: docs
-
 theme:
-  name: material
-  language: en
-  palette:
-    - media: "(prefers-color-scheme)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-auto
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to light mode
-  features:
-    - announce.dismiss
-    - content.action.edit
-    - content.action.view
-    - content.code.annotate
-    - content.code.copy
-    - content.code.select
-    - content.tabs.link
-    - content.tooltips
-    - header.autohide
-    - navigation.expand
-    - navigation.footer
-    - navigation.indexes
-    - navigation.instant
-    - navigation.instant.prefetch
-    - navigation.instant.progress
-    - navigation.instant.result
-    - navigation.instant.suggest
-    - navigation.instant.typesense
-    - navigation.instant.typesense.config
-    - navigation.prune
-    - navigation.sections
-    - navigation.sort
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.top
-    - navigation.tracking
-    - navigation.footer
-    - search.highlight
-    - search.share
-    - search.suggest
-    - toc.follow
-
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/atiilla/sqlmap-ai
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/atiilla
-  # version:
-  #   provider: mike
-
-plugins:
-  - search
-  - git-revision-date-localized:
-      enable_creation_date: true
-  - minify:
-      minify_html: true
-
-markdown_extensions:
-  - abbr
-  - admonition
-  - attr_list
-  - codehilite:
-      guess_lang: false
-      use_pygments: true
-  - def_list
-  - footnotes
-  - md_in_html
-  - toc:
-      permalink: true
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.betterem:
-      smart_enable: all
-  - pymdownx.caret
-  - pymdownx.details
-  - pymdownx.emoji:
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.keys
-  - pymdownx.magiclink:
-      normalize_issue_symbols: true
-      repo_url_shorthand: true
-      user: atiilla
-      repo: sqlmap-ai
-  - pymdownx.mark
-  - pymdownx.smartsymbols
-  - pymdownx.snippets:
-      auto_append:
-        - includes/mkdocs.md
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.tabbed:
-      alternate_style: true
-      combine_header_slug: true
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-        kwds:
-          case: lower
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.tilde
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - bash
+    - yaml
+    - python
+    - http
+    - json
 
 nav:
   - Home: index.md
-  - Getting Started:
-    - Quick Start: getting-started/quick-start.md
-    - Installation: getting-started/installation.md
-    - Configuration: getting-started/configuration.md
-    - AI Providers: getting-started/ai-providers.md
-  - User Guide:
-    - Basic Usage: user-guide/basic-usage.md
-    - Testing Modes: user-guide/testing-modes.md
-    - Request Files: user-guide/request-files.md
-    - Advanced Features: user-guide/advanced-features.md
-    - Adaptive Testing: user-guide/adaptive-testing.md
-  - Reference:
-    - Command Line Interface: reference/cli.md
-    - Configuration Files: reference/config-files.md
-    - AI Providers: reference/ai-providers-reference.md
-    - Troubleshooting: reference/troubleshooting.md
-  - Examples:
-    - Basic Examples: examples/basic-examples.md
-    - Advanced Examples: examples/advanced-examples.md
-    - Real-world Scenarios: examples/real-world-scenarios.md
-  - Development:
-    - Contributing: development/contributing.md
-    - Architecture: development/architecture.md
-    - API Reference: development/api-reference.md
-  - About:
-    - License: about/license.md
-    - Changelog: about/changelog.md
+  - Installation: INSTALLATION.md
+  - Usage Guide: USAGE.md
+  - Configuration: CONFIGURATION.md
+  - Troubleshooting: TROUBLESHOOTING.md
+  - Changelog: CHANGELOG.md
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - fenced_code
+  - codehilite:
+      guess_lang: false
+  - admonition
+  - def_list

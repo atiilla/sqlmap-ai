@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Atilla" /><link rel="canonical" href="https://atiilla.github.io/sqlmap-ai/INSTALLATION/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Installation - SQLMap AI Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Installation";
+        var mkdocs_page_input_path = "INSTALLATION.md";
+        var mkdocs_page_url = "/sqlmap-ai/INSTALLATION/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/bash.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/http.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SQLMap AI Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-1-install-sqlmap">Step 1: Install SQLMap</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-2-install-sqlmap-ai">Step 2: Install SQLMap AI</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-3-configure-ai-providers">Step 3: Configure AI Providers</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#option-a-groq-recommended-fastest">Option A: Groq (Recommended - Fastest)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#option-b-openai">Option B: OpenAI</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#option-c-anthropic-claude">Option C: Anthropic (Claude)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#option-d-ollama-local-ai-privacy-focused">Option D: Ollama (Local AI - Privacy Focused)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ollama-model-selection">Ollama Model Selection</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-4-run-configuration-wizard">Step 4: Run Configuration Wizard</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-5-test-your-setup">Step 5: Test Your Setup</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ai-providers-comparison">AI Providers Comparison</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../USAGE/">Usage Guide</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../CONFIGURATION/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../TROUBLESHOOTING/">Troubleshooting</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../CHANGELOG/">Changelog</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SQLMap AI Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/atiilla/sqlmap-ai/edit/main/docs/INSTALLATION.md">Edit on atiilla/sqlmap-ai</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Python 3.8+</li>
+<li>SQLMap (must be installed globally on your system)</li>
+<li>Internet connection (for cloud AI providers)</li>
+<li>2GB+ RAM (for Ollama local models)</li>
+</ul>
+<h2 id="step-1-install-sqlmap">Step 1: Install SQLMap<a class="headerlink" href="#step-1-install-sqlmap" title="Permanent link">&para;</a></h2>
+<p>First, install SQLMap globally on your system:</p>
+<pre class="codehilite"><code class="language-bash"># Kali/Debian/Ubuntu
+sudo apt install sqlmap
+
+# macOS
+brew install sqlmap
+
+# Or from source
+git clone https://github.com/sqlmapproject/sqlmap.git
+cd sqlmap
+sudo python setup.py install
+
+# Verify installation
+sqlmap --version
+</code></pre>
+
+<h2 id="step-2-install-sqlmap-ai">Step 2: Install SQLMap AI<a class="headerlink" href="#step-2-install-sqlmap-ai" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Clone the repository
+git clone https://github.com/atiilla/sqlmap-ai.git
+cd sqlmap-ai
+
+# Install the package
+pip install -e .
+
+# Or install from PyPI
+pip install sqlmap-ai
+
+# Run installation check (creates config files)
+sqlmap-ai --install-check
+</code></pre>
+
+<h2 id="step-3-configure-ai-providers">Step 3: Configure AI Providers<a class="headerlink" href="#step-3-configure-ai-providers" title="Permanent link">&para;</a></h2>
+<p>Choose one or more AI providers to use:</p>
+<h3 id="option-a-groq-recommended-fastest">Option A: Groq (Recommended - Fastest)<a class="headerlink" href="#option-a-groq-recommended-fastest" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Get a free API key from <a href="https://console.groq.com">https://console.groq.com</a></li>
+<li>Add to your <code>.env</code> file:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">GROQ_API_KEY=your_groq_api_key_here
+</code></pre>
+
+<h3 id="option-b-openai">Option B: OpenAI<a class="headerlink" href="#option-b-openai" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Get an API key from <a href="https://platform.openai.com">https://platform.openai.com</a></li>
+<li>Add to your <code>.env</code> file:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">OPENAI_API_KEY=your_openai_api_key_here
+</code></pre>
+
+<h3 id="option-c-anthropic-claude">Option C: Anthropic (Claude)<a class="headerlink" href="#option-c-anthropic-claude" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Get an API key from <a href="https://console.anthropic.com">https://console.anthropic.com</a></li>
+<li>Add to your <code>.env</code> file:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">ANTHROPIC_API_KEY=your_anthropic_api_key_here
+</code></pre>
+
+<h3 id="option-d-ollama-local-ai-privacy-focused">Option D: Ollama (Local AI - Privacy Focused)<a class="headerlink" href="#option-d-ollama-local-ai-privacy-focused" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Install Ollama: <a href="https://ollama.ai/download">https://ollama.ai/download</a></li>
+<li>Start Ollama service:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">ollama serve
+</code></pre>
+
+<ol>
+<li>Download a model:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">ollama pull llama3.2
+</code></pre>
+
+<ol>
+<li>Enable in your <code>.env</code> file:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">ENABLE_OLLAMA=true
+OLLAMA_MODEL=llama3.2
+</code></pre>
+
+<h3 id="ollama-model-selection">Ollama Model Selection<a class="headerlink" href="#ollama-model-selection" title="Permanent link">&para;</a></h3>
+<p>If using Ollama, you can select different models:</p>
+<pre class="codehilite"><code class="language-bash"># List available models
+sqlmap-ai --list-ollama-models
+
+# Interactive model selection
+sqlmap-ai --config-wizard
+</code></pre>
+
+<p>Popular models:
+- <strong>llama3.2</strong> - Good general performance
+- <strong>codellama</strong> - Specialized for code analysis
+- <strong>mistral</strong> - Fast and efficient
+- <strong>qwen2.5</strong> - Good reasoning capabilities</p>
+<h2 id="step-4-run-configuration-wizard">Step 4: Run Configuration Wizard<a class="headerlink" href="#step-4-run-configuration-wizard" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Interactive setup
+sqlmap-ai --config-wizard
+</code></pre>
+
+<p>This will:
+- Check your AI provider setup
+- Let you select Ollama models (if using Ollama)
+- Configure security settings
+- Set up SQLMap options</p>
+<h2 id="step-5-test-your-setup">Step 5: Test Your Setup<a class="headerlink" href="#step-5-test-your-setup" title="Permanent link">&para;</a></h2>
+<pre class="codehilite"><code class="language-bash"># Check if everything is working
+sqlmap-ai --check-providers
+
+# List available Ollama models (if using Ollama)
+sqlmap-ai --list-ollama-models
+</code></pre>
+
+<h2 id="ai-providers-comparison">AI Providers Comparison<a class="headerlink" href="#ai-providers-comparison" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Setup</th>
+<th>Speed</th>
+<th>Privacy</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Groq</strong></td>
+<td>API Key</td>
+<td>Fastest</td>
+<td>Cloud</td>
+<td>Free tier available</td>
+</tr>
+<tr>
+<td><strong>OpenAI</strong></td>
+<td>API Key</td>
+<td>Fast</td>
+<td>Cloud</td>
+<td>Pay per use</td>
+</tr>
+<tr>
+<td><strong>Anthropic</strong></td>
+<td>API Key</td>
+<td>Fast</td>
+<td>Cloud</td>
+<td>Pay per use</td>
+</tr>
+<tr>
+<td><strong>Ollama</strong></td>
+<td>Local install</td>
+<td>Fast</td>
+<td>Local</td>
+<td>Free</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../USAGE/" class="btn btn-neutral float-right" title="Usage Guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/atiilla/sqlmap-ai" class="fa fa-code-fork" style="color: #fcfcfc"> atiilla/sqlmap-ai</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../USAGE/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
