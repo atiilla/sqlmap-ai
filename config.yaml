@@ -8,6 +8,15 @@ ai_providers:
     priority: 3
     rate_limit: 1.0
     timeout: 30
+  deepseek:
+    api_key_env: DEEPSEEK_API_KEY
+    enabled: true
+    max_tokens: 4096
+    model: deepseek-chat
+    name: deepseek
+    priority: 1
+    rate_limit: 1.0
+    timeout: 30
   groq:
     api_key_env: GROQ_API_KEY
     enabled: false
@@ -80,7 +89,7 @@ sqlmap:
   default_level: 1
   default_risk: 1
   default_threads: 5
-  default_timeout: 120
+  default_timeout: 300
   enable_tamper_scripts: true
   max_level: 3
   max_risk: 2

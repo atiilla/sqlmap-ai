@@ -3,24 +3,26 @@ import sys
 import os
 from colorama import init, Fore, Style
 from sqlmap_ai.ui import print_info, print_success, print_error, print_warning
+from sqlmap_ai import __version__
 
 # Initialize colorama
 init()
 
 def print_sqlmapai_logo():
+    version = __version__
     logo_lines = [
         "",
-        "▄▀▀▀▄  v2.0.7",
+        f"▄▀▀▀▄  v{version}",
         "█░░░█  https://github.com/atiilla/sqlmap-ai",
         "█░░░█  AI-Powered SQL Injection Testing",
         "▀█░█▀ ",
         "  ▀  ",
         ""
     ]
-    
+
     for line in logo_lines:
         if line.strip():
-            if "v2.0.7" in line or "___" in line or "[" in line:
+            if line.startswith("▄") or "___" in line or "[" in line:
                 print(f"{Fore.CYAN}{line}{Style.RESET_ALL}")
             elif "https://" in line:
                 print(f"{Fore.YELLOW}{line}{Style.RESET_ALL}")
@@ -42,7 +44,7 @@ def print_animated_logo():
         "  ╚══════╝ ╚══▀▀═╝ ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝         ╚═╝  ╚═╝╚═╝",
         "",
         "            Next Generation AI-Powered SQL Injection Testing",
-        "                    Developed by @atiilla | Version 2.0",
+        f"                    Developed by @atiilla | Version {__version__}",
         ""
     ]
     

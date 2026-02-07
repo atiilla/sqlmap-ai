@@ -110,6 +110,7 @@ def build_sqlmap_options(args) -> list:
     config = get_config()
     
     # Add request file if provided
+    # Always use -r (sqlmap auto-detects Burp XML format)
     if args.request_file:
         options.extend(["-r", args.request_file])
     
@@ -391,6 +392,70 @@ def _transform_result_for_report(result, timestamp):
     }
 
 
+def _build_merged_scan_info(scan_history):
+    """Aggregate scan_info from all scan_history steps into one merged dict."""
+    all_vulns = set()
+    all_databases = set()
+    all_tables = []
+    all_columns = {}
+    all_techniques = set()
+    all_payloads = []
+    dbms = "Unknown"
+    os_info = "Unknown"
+    web_app = []
+    waf_detected = False
+    raw_results = []
+    url = ""
+
+    for step in scan_history:
+        r = step.get("result", {})
+
+        for v in r.get("vulnerable_parameters", []):
+            all_vulns.add(v)
+
+        for db in r.get("databases", []):
+            all_databases.add(db)
+
+        for t in r.get("tables", []):
+            if t not in all_tables:
+                all_tables.append(t)
+
+        all_columns.update(r.get("columns", {}))
+
+        for tech in r.get("techniques", []):
+            all_techniques.add(tech)
+
+        all_payloads.extend(r.get("payloads", [])[:3])
+
+        if r.get("dbms") and r["dbms"] != "Unknown":
+            dbms = r["dbms"]
+        if r.get("os") and r["os"] != "Unknown":
+            os_info = r["os"]
+        if r.get("web_app"):
+            web_app = r["web_app"]
+        if r.get("waf_detected"):
+            waf_detected = True
+        if r.get("url"):
+            url = r["url"]
+        if r.get("raw_result"):
+            raw_results.append(r["raw_result"])
+
+    return {
+        "vulnerable_parameters": list(all_vulns),
+        "databases": list(all_databases),
+        "tables": all_tables,
+        "columns": all_columns,
+        "techniques": list(all_techniques),
+        "payloads": all_payloads[:10],
+        "dbms": dbms,
+        "os": os_info,
+        "web_app": web_app,
+        "waf_detected": waf_detected,
+        "url": url,
+        "raw_result": "\n\n---\n\n".join(raw_results),
+    }
+
+
 def run_adaptive_mode(runner, target_url, user_timeout, interactive_mode):
     print_info("Starting adaptive step-by-step testing sequence...")
     print_info("This mode will automatically sequence through multiple testing phases")
@@ -475,7 +540,16 @@ def run_standard_mode(runner, target_url, user_timeout, interactive_mode, ai_pro
     print_info("Starting initial reconnaissance...")
     scan_history = []
     extracted_data = {}
-    report = runner.gather_info(target_url, timeout=user_timeout, interactive=interactive_mode)
+
+    # Build base options from args (includes -r/-l request files, --batch, etc.)
+    base_options = build_sqlmap_options(args) if args else ["--batch"]
+
+    report = runner.run_sqlmap(
+        target_url=target_url,
+        options=base_options + ["--fingerprint", "--dbs"],
+        timeout=user_timeout,
+        interactive_mode=interactive_mode
+    )
     if report:
         print_success("Initial reconnaissance completed!")
         initial_info = extract_sqlmap_info(report)
@@ -523,13 +597,21 @@ def run_standard_mode(runner, target_url, user_timeout, interactive_mode, ai_pro
             user_options = get_user_choice(next_options)
             if user_options:
                 print_info("Running follow-up scan...")
-                
+
+                # Merge base options (request file, batch, etc.) with AI-suggested options
+                # Extract request file opts from base_options to carry forward
+                request_file_opts = _extract_request_file_opts(base_options)
+                if isinstance(user_options, list):
+                    merged_options = request_file_opts + user_options
+                else:
+                    merged_options = request_file_opts + user_options.split()
+
                 # Calculate adaptive timeout based on scan complexity
-                second_timeout = calculate_adaptive_timeout(user_timeout, user_options, "follow_up")
-                
+                second_timeout = calculate_adaptive_timeout(user_timeout, merged_options, "follow_up")
+
                 print_info(f"Using adaptive timeout: {second_timeout} seconds")
-                
-                result = runner.run_sqlmap(target_url, user_options, timeout=second_timeout, interactive_mode=interactive_mode)
+
+                result = runner.run_sqlmap(target_url, merged_options, timeout=second_timeout, interactive_mode=interactive_mode)
                 if result and "TIMEOUT:" in result:
                     print_warning("Follow-up scan timed out.")
                     print_info("You may still get useful results from the partial scan data.")
@@ -543,55 +625,54 @@ def run_standard_mode(runner, target_url, user_timeout, interactive_mode, ai_pro
                         "result": followup_info
                     })
                     display_report(result)
-                    if (
-                        followup_info.get("tables") 
-                        and followup_info.get("columns")
-                        and confirm_additional_step()
-                    ):
-                        print_info("Starting data extraction...")
-                        extraction_options = f"--dump -T {','.join(followup_info['tables'][:3])}"
-                        
-                        # Use adaptive timeout for data extraction
-                        extraction_timeout = calculate_adaptive_timeout(user_timeout, extraction_options, "data_extraction")
-                        print_info(f"Using extraction timeout: {extraction_timeout} seconds")
-                        
-                        extraction_result = runner.run_sqlmap(
-                            target_url, 
-                            extraction_options, 
-                            timeout=extraction_timeout,
-                            interactive_mode=interactive_mode
+                    if followup_info.get("tables"):
+                        scan_history, extracted_data = interactive_table_dump_loop(
+                            runner=runner,
+                            target_url=target_url,
+                            followup_info=followup_info,
+                            scan_history=scan_history,
+                            extracted_data=extracted_data,
+                            user_timeout=user_timeout,
+                            interactive_mode=interactive_mode,
+                            base_options=base_options
                         )
-                        if extraction_result:
-                            print_success("Data extraction completed!")
-                            extraction_info = extract_sqlmap_info(extraction_result)
-                            scan_history.append({
-                                "step": "data_extraction",
-                                "command": f"sqlmap -u {target_url} {extraction_options}",
-                                "result": extraction_info
-                            })
-                            if extraction_info.get("extracted"):
-                                extracted_data.update(extraction_info["extracted"])
-                            display_report(extraction_result)
-                        elif extraction_result and "TIMEOUT:" in extraction_result:
-                            print_warning("Data extraction timed out.")
-                            print_info("Partial data may be available in the report.")
                     if confirm_save_report():
                         print_info("Creating beautiful HTML report...")
                         try:
-                            # Create scan data structure
+                            import os
+                            from urllib.parse import urlparse
+
+                            timestamp = int(time.time())
+
+                            # Create host-based reports folder
+                            hostname = urlparse(target_url).hostname or "unknown_host"
+                            host_reports_dir = os.path.join("reports", hostname)
+                            os.makedirs(host_reports_dir, exist_ok=True)
+
+                            # Build merged scan_info from all scan steps
+                            merged_info = _build_merged_scan_info(scan_history)
+
+                            # Create scan data structure with extracted data
                             scan_data = {
-                                "timestamp": int(time.time()),
-                                "scan_info": followup_info,
-                                "scan_history": scan_history
+                                "timestamp": timestamp,
+                                "scan_info": merged_info,
+                                "scan_history": scan_history,
+                                "extracted_data": extracted_data
                             }
-                            
-                            # Generate HTML report
+
+                            # Generate HTML report in host folder
+                            output_path = os.path.join(host_reports_dir, f"sqlmap_report_{timestamp}.html")
                             report_path = report_generator.generate_comprehensive_report(
                                 scan_data=scan_data,
-                                output_format="html"
+                                output_format="html",
+                                output_path=output_path
                             )
                             print_success(f"Beautiful HTML report generated: {report_path}")
                             print_info("Open the HTML file in your browser to view the interactive report")
+
+                            # Save dumped data as CSV files in same host folder
+                            if extracted_data:
+                                _save_dump_csvs(extracted_data, host_reports_dir)
                         except Exception as e:
                             print_error(f"Failed to save report: {str(e)}")
                 else:
@@ -600,53 +681,244 @@ def run_standard_mode(runner, target_url, user_timeout, interactive_mode, ai_pro
             print_warning("No clear vulnerabilities found. Try different parameters or advanced options.")
     else:
         print_error("Initial test failed. Check target URL and try again.")
-def confirm_additional_step():
+def _extract_request_file_opts(base_options):
+    """Extract request-file-related options (-r, -l) from base_options to carry forward to all scans."""
+    result = []
+    skip_next = False
+    for i, opt in enumerate(base_options):
+        if skip_next:
+            result.append(opt)
+            skip_next = False
+            continue
+        if opt in ("-r", "-l"):
+            result.append(opt)
+            skip_next = True
+    return result
+
+
+def interactive_table_dump_loop(runner, target_url, followup_info, scan_history, extracted_data, user_timeout, interactive_mode, base_options=None):
+    """Interactive loop that lets the user pick tables to dump one at a time."""
+    from colorama import Fore, Style
+
+    tables = followup_info.get("tables", [])
+    if not tables:
+        return scan_history, extracted_data
+
+    # Determine database name from followup_info or earlier scan history
+    db_name = ""
+    databases = followup_info.get("databases", [])
+    if not databases:
+        for step in scan_history:
+            step_dbs = step.get("result", {}).get("databases", [])
+            if step_dbs:
+                databases = step_dbs
+                break
+    if databases:
+        # Prefer the non-system database
+        system_dbs = {"information_schema", "mysql", "performance_schema", "sys"}
+        for db in databases:
+            if db.lower() not in system_dbs:
+                db_name = db
+                break
+        if not db_name:
+            db_name = databases[0]
+
+    dumped_tables = set()
+
     while True:
-        choice = input("\nWould you like to extract data from discovered tables? (y/n): ").lower()
-        if choice in ["y", "yes"]:
-            return True
-        elif choice in ["n", "no"]:
-            return False
+        # Display numbered table list with dump status
+        print(f"\n{Fore.CYAN}{'='*50}")
+        print(f"  Discovered Tables ({len(dumped_tables)}/{len(tables)} dumped)")
+        print(f"{'='*50}{Style.RESET_ALL}")
+        for i, table in enumerate(tables, 1):
+            marker = f"{Fore.GREEN} [dumped]{Style.RESET_ALL}" if table in dumped_tables else ""
+            print(f"  {i}. {table}{marker}")
+        print(f"{Fore.CYAN}{'='*50}{Style.RESET_ALL}")
+
+        prompt = f"\n{Fore.GREEN}Select table (1-{len(tables)}), 'a' dump all, 'q' to finish: {Style.RESET_ALL}"
+        choice = input(prompt).strip().lower()
+
+        if choice == 'q':
+            break
+        elif choice == 'a':
+            undumped = [t for t in tables if t not in dumped_tables]
+            if not undumped:
+                print_info("All tables have already been dumped.")
+                continue
+            for table in undumped:
+                _dump_single_table(
+                    runner, target_url, db_name, table,
+                    scan_history, extracted_data, dumped_tables,
+                    user_timeout, interactive_mode, base_options
+                )
         else:
-            print("Please answer with 'y' or 'n'.")
+            try:
+                idx = int(choice) - 1
+                if 0 <= idx < len(tables):
+                    table = tables[idx]
+                    if table in dumped_tables:
+                        print_warning(f"Table '{table}' was already dumped. Dumping again...")
+                    _dump_single_table(
+                        runner, target_url, db_name, table,
+                        scan_history, extracted_data, dumped_tables,
+                        user_timeout, interactive_mode, base_options
+                    )
+                else:
+                    print_warning(f"Invalid number. Please enter 1-{len(tables)}.")
+            except ValueError:
+                print_warning("Invalid input. Enter a table number, 'a', or 'q'.")
+
+    return scan_history, extracted_data
+
+
+def _dump_single_table(runner, target_url, db_name, table_name, scan_history, extracted_data, dumped_tables, user_timeout, interactive_mode, base_options=None):
+    """Dump a single table and update tracking structures."""
+    print_info(f"Dumping table: {table_name}...")
+
+    # Start with request file opts from base_options (e.g. -l/-r)
+    request_file_opts = _extract_request_file_opts(base_options) if base_options else []
+    dump_options = request_file_opts + ["-T", table_name, "--dump", "--batch"]
+    if db_name:
+        dump_options = request_file_opts + ["-D", db_name, "-T", table_name, "--dump", "--batch"]
+
+    extraction_timeout = calculate_adaptive_timeout(user_timeout, dump_options, "data_extraction")
+    print_info(f"Using extraction timeout: {extraction_timeout} seconds")
+
+    extraction_result = runner.run_sqlmap(
+        target_url,
+        dump_options,
+        timeout=extraction_timeout,
+        interactive_mode=interactive_mode
+    )
+
+    if extraction_result:
+        if "TIMEOUT:" in extraction_result:
+            print_warning(f"Dump of '{table_name}' timed out. Partial data may be available.")
+        else:
+            print_success(f"Table '{table_name}' dumped successfully!")
+
+        extraction_info = extract_sqlmap_info(extraction_result)
+        scan_history.append({
+            "step": f"data_extraction_{table_name}",
+            "command": f"sqlmap -u {target_url} {' '.join(dump_options)}",
+            "result": extraction_info
+        })
+        if extraction_info.get("extracted"):
+            extracted_data.update(extraction_info["extracted"])
+        display_report(extraction_result)
+        dumped_tables.add(table_name)
+    else:
+        print_error(f"Failed to dump table '{table_name}'.")
+
+def _save_dump_csvs(extracted_data, reports_dir):
+    """Save dumped table data as CSV files in the given reports directory."""
+    import os
+    import csv
+
+    os.makedirs(reports_dir, exist_ok=True)
+
+    saved_count = 0
+    for table_key, data in extracted_data.items():
+        columns = data.get("columns", [])
+        raw_result = data.get("raw_result", "")
+        if not columns or not raw_result:
+            continue
+
+        # Parse rows from the ASCII table
+        rows = _parse_ascii_table_rows(raw_result, columns)
+
+        safe_name = table_key.replace(".", "_").replace("/", "_")
+        csv_path = os.path.join(reports_dir, f"{safe_name}.csv")
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(columns)
+            writer.writerows(rows)
+        saved_count += 1
+
+    if saved_count:
+        print_success(f"Dumped data saved as {saved_count} CSV file(s) in {reports_dir}/")
+
+
+def _parse_ascii_table_rows(raw_table, columns):
+    """Parse rows from a sqlmap ASCII table output."""
+    rows = []
+    for line in raw_table.split("\n"):
+        line = line.strip()
+        if not line or line.startswith("+") or line.startswith("-"):
+            continue
+        if "|" not in line:
+            continue
+        cells = [c.strip() for c in line.split("|")]
+        # Remove empty first/last from leading/trailing |
+        cells = [c for c in cells if c != ""]
+        # Skip the header row (matches column names)
+        if cells == columns:
+            continue
+        if len(cells) == len(columns):
+            rows.append(cells)
+    return rows
+
+
+def is_burp_xml_file(file_path: str) -> bool:
+    """Check if a file is a Burp Suite XML export."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            # Read first 200 chars to detect format
+            header = f.read(200)
+        return header.strip().startswith('<?xml') and 'burpVersion' in header
+    except Exception:
+        return False
+
 
 def extract_url_from_request_file(request_file_path: str) -> Optional[str]:
-    
+
     try:
         with open(request_file_path, 'r', encoding='utf-8') as f:
             content = f.read().strip()
-        
-        # Parse the first line to get the request line
+
+        # Detect Burp Suite XML export format
+        if content.startswith('<?xml') and 'burpVersion' in content:
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(content)
+            # Extract URL from first <item><url> element
+            item = root.find('item')
+            if item is not None:
+                url_elem = item.find('url')
+                if url_elem is not None and url_elem.text:
+                    return url_elem.text.strip()
+            return None
+
+        # Parse raw HTTP request format
         lines = content.split('\n')
         if not lines:
             return None
-        
+
         # First line should be: METHOD /path HTTP/1.1
         request_line = lines[0].strip()
         parts = request_line.split()
         if len(parts) < 2:
             return None
-        
+
         # Find Host header
         host = None
         for line in lines[1:]:
             if line.lower().startswith('host:'):
                 host = line.split(':', 1)[1].strip()
                 break
-        
+
         if not host:
             return None
-        
+
         # Determine protocol (default to http)
         protocol = 'https' if 'https://' in content.lower() else 'http'
-        
+
         # Construct URL
         path = parts[1]
         if not path.startswith('/'):
             path = '/' + path
-        
+
         return f"{protocol}://{host}{path}"
-        
+
     except Exception as e:
         print_warning(f"Failed to extract URL from request file: {e}")
         return None

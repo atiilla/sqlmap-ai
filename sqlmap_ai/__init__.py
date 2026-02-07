@@ -1,4 +1,4 @@
-__version__ = "2.0.7"
+__version__ = "2.0.8"
 __author__ = "Atilla"
 __email__ = "atilla@tuta.io"
 __description__ = "AI-powered SQL injection testing tool with multiple AI providers"

@@ -184,6 +184,13 @@ class HTMLReporter:
         # Calculate scan summary
         scan_summary = self._generate_scan_summary(scan_data, assessed_vulnerabilities)
         
+        # Collect extracted data from scan_data and scan_history
+        extracted_data = dict(scan_data.get('extracted_data', {}))
+        for step in scan_data.get('scan_history', []):
+            step_extracted = step.get('result', {}).get('extracted', {})
+            if step_extracted:
+                extracted_data.update(step_extracted)
+
         # Generate HTML content
         html_content = self._create_html_template(
             vulnerabilities=assessed_vulnerabilities,
@@ -192,7 +199,8 @@ class HTMLReporter:
             dbms=dbms,
             raw_result=raw_result,
             scan_data=scan_data,
-            scan_summary=scan_summary
+            scan_summary=scan_summary,
+            extracted_data=extracted_data
         )
         
         # Write HTML file
@@ -242,9 +250,10 @@ class HTMLReporter:
             'total_requests': total_steps
         }
     
-    def _create_html_template(self, vulnerabilities: List[Dict[str, Any]], techniques: List[str], 
-                            databases: List[str], dbms: str, raw_result: str, 
-                            scan_data: Dict[str, Any], scan_summary: Dict[str, Any]) -> str:
+    def _create_html_template(self, vulnerabilities: List[Dict[str, Any]], techniques: List[str],
+                            databases: List[str], dbms: str, raw_result: str,
+                            scan_data: Dict[str, Any], scan_summary: Dict[str, Any],
+                            extracted_data: Dict[str, Any] = None) -> str:
         
         
         # Use scan summary statistics
@@ -347,6 +356,9 @@ class HTMLReporter:
 
         <!-- Database Information -->
         {self._generate_database_section(databases, dbms, scan_data)}
+
+        <!-- Extracted/Dumped Data -->
+        {self._generate_extracted_data_section(extracted_data or {})}
 
         <!-- Scan History -->
         {self._generate_scan_history_section(scan_data.get('scan_history', []))}
@@ -587,6 +599,98 @@ class HTMLReporter:
         </div>
         """
     
+    def _generate_extracted_data_section(self, extracted_data: Dict[str, Any]) -> str:
+        """Generate HTML section showing dumped table data."""
+        if not extracted_data:
+            return ""
+
+        table_cards = ""
+        for table_key, data in extracted_data.items():
+            columns = data.get("columns", [])
+            entry_count = data.get("entry_count", 0)
+            raw_result = data.get("raw_result", "")
+
+            if not columns:
+                continue
+
+            # Parse rows from ASCII table
+            rows = self._parse_ascii_rows(raw_result, columns)
+
+            # Build HTML table header
+            th_cells = "".join(
+                f'<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{col}</th>'
+                for col in columns
+            )
+
+            # Build HTML table rows (show up to 50 rows)
+            tr_rows = ""
+            display_rows = rows[:50]
+            for i, row in enumerate(display_rows):
+                row_bg = "bg-white" if i % 2 == 0 else "bg-gray-50"
+                td_cells = "".join(
+                    f'<td class="px-4 py-2 text-sm text-gray-700 break-all max-w-xs">{cell}</td>'
+                    for cell in row
+                )
+                tr_rows += f'<tr class="{row_bg}">{td_cells}</tr>'
+
+            truncation_note = ""
+            if len(rows) > 50:
+                truncation_note = f'<p class="text-xs text-gray-500 mt-2 italic">Showing 50 of {len(rows)} rows. Full data available in CSV export.</p>'
+
+            table_cards += f"""
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">{table_key}</h3>
+                        <span class="text-sm text-gray-500">{entry_count} entries</span>
+                    </div>
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr>{th_cells}</tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {tr_rows}
+                            </tbody>
+                        </table>
+                    </div>
+                    {truncation_note}
+                </div>
+            """
+
+        if not table_cards:
+            return ""
+
+        return f"""
+        <div class="mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">📥 Dumped Table Data</h2>
+                <div class="mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {len(extracted_data)} table(s) dumped
+                    </span>
+                </div>
+                {table_cards}
+            </div>
+        </div>
+        """
+
+    def _parse_ascii_rows(self, raw_table: str, columns: list) -> list:
+        """Parse data rows from a sqlmap ASCII table."""
+        rows = []
+        for line in raw_table.split("\n"):
+            line = line.strip()
+            if not line or line.startswith("+") or line.startswith("-"):
+                continue
+            if "|" not in line:
+                continue
+            cells = [c.strip() for c in line.split("|")]
+            cells = [c for c in cells if c != ""]
+            if cells == columns:
+                continue
+            if len(cells) == len(columns):
+                rows.append(cells)
+        return rows
+
     def _generate_scan_history_section(self, scan_history: List[Dict[str, Any]]) -> str:
         
         if not scan_history:
@@ -616,6 +720,14 @@ class HTMLReporter:
                 findings.append(f'<span class="text-purple-600">• {col_count} column(s) in {len(columns)} table(s)</span>')
             if payloads:
                 findings.append(f'<span class="text-yellow-600">• {len(payloads)} payload(s) tested</span>')
+
+            # Show extracted/dumped data in findings
+            extracted = result.get('extracted', {})
+            if extracted:
+                for tbl_key, tbl_data in extracted.items():
+                    entry_count = tbl_data.get('entry_count', 0)
+                    col_count = len(tbl_data.get('columns', []))
+                    findings.append(f'<span class="text-green-600">• Dumped {tbl_key}: {entry_count} entries, {col_count} columns</span>')
 
             findings_html = "<br>".join(findings) if findings else '<span class="text-gray-500 italic">No significant findings</span>'
 

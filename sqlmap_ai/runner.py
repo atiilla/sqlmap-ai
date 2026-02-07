@@ -101,14 +101,22 @@ class SQLMapAPIRunner:
             print_info("Starting SQLMap API server...")
             try:
                 # Start the API server process
+                # Use 'waitress' adapter instead of default 'wsgiref' which is
+                # broken on Python 3.13+ (binds port but never accepts connections)
                 sqlmap_dir = os.path.dirname(self.sqlmap_api_script)
+                server_cmd = [sys.executable, self.sqlmap_api_script, "-s"]
+                try:
+                    import waitress  # noqa: F401
+                    server_cmd.extend(["--adapter", "waitress"])
+                except ImportError:
+                    pass  # fall back to default wsgiref
                 self.api_process = subprocess.Popen(
-                    [sys.executable, self.sqlmap_api_script, "-s"],
+                    server_cmd,
                     cwd=sqlmap_dir,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )
-                time.sleep(3)  # Wait for the server to start
+                time.sleep(2)  # Wait for the server to start
                 
                 # Verify server started successfully
                 for _ in range(5):
@@ -153,19 +161,26 @@ class SQLMapAPIRunner:
             self._log_error(f"Error creating new task: {str(e)}")
             return None
 
-    def _start_scan(self, task_id: str, target_url: str, options: Union[List[str], str], request_file_path: Optional[str] = None) -> bool:
-        
+    def _start_scan(self, task_id: str, target_url: str, options: Union[List[str], str], request_file_path: Optional[str] = None, is_log_file: bool = False) -> bool:
+
         scan_options = {
             "flushSession": True,
             "getBanner": True,
         }
-        
-        # Handle request file - prefer API's built-in requestFile option
+
+        # Handle request file - use correct API option based on file type
         if request_file_path:
-            # Use SQLMap API's built-in requestFile support
-            scan_options["requestFile"] = os.path.abspath(request_file_path)
-            if self.debug_mode:
-                print_info(f"Using requestFile: {scan_options['requestFile']}")
+            abs_path = os.path.abspath(request_file_path)
+            if is_log_file:
+                # Burp XML log files use -l / logFile API option
+                scan_options["logFile"] = abs_path
+                if self.debug_mode:
+                    print_info(f"Using logFile (Burp XML): {abs_path}")
+            else:
+                # Raw HTTP request files use -r / requestFile API option
+                scan_options["requestFile"] = abs_path
+                if self.debug_mode:
+                    print_info(f"Using requestFile: {abs_path}")
         else:
             # Use target URL if no request file
             scan_options["url"] = target_url
@@ -173,8 +188,19 @@ class SQLMapAPIRunner:
         # Process options list into a dictionary
         if isinstance(options, list):
             request_file_from_options = None
-            for opt in options:
-                if opt.startswith("-r ") or opt.startswith("--request-file="):
+            log_file_from_options = None
+            skip_next = False
+            for i, opt in enumerate(options):
+                if skip_next:
+                    skip_next = False
+                    continue
+                if opt == "-r" and i + 1 < len(options):
+                    request_file_from_options = options[i + 1]
+                    skip_next = True
+                elif opt == "-l" and i + 1 < len(options):
+                    log_file_from_options = options[i + 1]
+                    skip_next = True
+                elif opt.startswith("-r ") or opt.startswith("--request-file="):
                     # Extract request file path from options
                     if opt.startswith("-r "):
                         request_file_from_options = opt[3:].strip()
@@ -204,7 +230,10 @@ class SQLMapAPIRunner:
                 elif opt == "--tables":
                     scan_options["getTables"] = True
                 elif opt == "--dump":
-                    scan_options["dump"] = True
+                    scan_options["dumpTable"] = True
+                    # Reuse cached session for dump (skip re-testing injection)
+                    scan_options["flushSession"] = False
+                    scan_options.pop("getBanner", None)
                 elif opt == "--identify-waf":
                     scan_options["identifyWaf"] = True
                 elif opt == "--forms":
@@ -215,10 +244,19 @@ class SQLMapAPIRunner:
                     scan_options["getCommonColumns"] = True
                 elif opt.startswith("-D "):
                     scan_options["db"] = opt[3:]
+                elif opt == "-D" and i + 1 < len(options):
+                    scan_options["db"] = options[i + 1]
+                    skip_next = True
                 elif opt.startswith("-T "):
                     scan_options["tbl"] = opt[3:]
+                elif opt == "-T" and i + 1 < len(options):
+                    scan_options["tbl"] = options[i + 1]
+                    skip_next = True
                 elif opt.startswith("-C "):
                     scan_options["col"] = opt[3:]
+                elif opt == "-C" and i + 1 < len(options):
+                    scan_options["col"] = options[i + 1]
+                    skip_next = True
                 elif opt.startswith("--data=") or opt.startswith("--data "):
                     data_value = opt.split("=")[1] if "=" in opt else opt[7:]
                     scan_options["data"] = data_value
@@ -239,12 +277,14 @@ class SQLMapAPIRunner:
                 elif opt == "--json":
                     # Handle JSON request format - already using JSON so just note it
                     pass
+                elif opt == "--ignore-redirects":
+                    scan_options["ignoreRedirects"] = True
                 elif opt == "--https":
                     # Custom flag to force HTTPS
                     if "url" in scan_options and not scan_options["url"].startswith("https://"):
                         scan_options["url"] = scan_options["url"].replace("http://", "https://")
             
-            # Handle request file found in options
+            # Handle request file (-r) found in options
             if request_file_from_options and not request_file_path:
                 scan_options["requestFile"] = os.path.abspath(request_file_from_options)
                 # Remove URL if using request file
@@ -252,6 +292,15 @@ class SQLMapAPIRunner:
                     del scan_options["url"]
                 if self.debug_mode:
                     print_info(f"Using requestFile from options: {scan_options['requestFile']}")
+
+            # Handle Burp log file (-l) found in options
+            if log_file_from_options and not request_file_path:
+                scan_options["logFile"] = os.path.abspath(log_file_from_options)
+                # Remove URL if using log file
+                if "url" in scan_options:
+                    del scan_options["url"]
+                if self.debug_mode:
+                    print_info(f"Using logFile from options: {scan_options['logFile']}")
                     
         elif isinstance(options, str):
             # If options is a string, split and process the same way
@@ -266,6 +315,11 @@ class SQLMapAPIRunner:
             scan_options["risk"] = 1
         if "batch" not in scan_options:
             scan_options["batch"] = True
+        # Auto-ignore redirects for request files in batch mode to avoid
+        # login-page redirects making content appear "heavily dynamic"
+        if "ignoreRedirects" not in scan_options:
+            if "requestFile" in scan_options or "logFile" in scan_options:
+                scan_options["ignoreRedirects"] = True
             
         try:
             headers = {"Content-Type": "application/json"}
@@ -533,12 +587,12 @@ class SQLMapAPIRunner:
             result_data = self._get_scan_data(task_id)
             if result_data is None:
                 return None
-            
+
             # Convert API response to a format similar to CLI output
             # Empty list means scan completed successfully but found no vulnerabilities
             if not result_data:
                 return "[*] No vulnerabilities detected\n"
-            
+
             formatted_output = self._format_api_data(result_data)
             return formatted_output
             
@@ -565,10 +619,53 @@ class SQLMapAPIRunner:
         except:
             return None
 
+    @staticmethod
+    def _ensure_list(value):
+        """Safely convert a value to a list if it's a string representation."""
+        if isinstance(value, list):
+            return value
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+                if isinstance(parsed, list):
+                    return parsed
+            except (json.JSONDecodeError, ValueError):
+                pass
+            try:
+                import ast
+                parsed = ast.literal_eval(value)
+                if isinstance(parsed, list):
+                    return parsed
+            except (ValueError, SyntaxError):
+                pass
+            return [value]
+        return [value] if value is not None else []
+
+    @staticmethod
+    def _ensure_dict(value):
+        """Safely convert a value to a dict if it's a string representation."""
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+                if isinstance(parsed, dict):
+                    return parsed
+            except (json.JSONDecodeError, ValueError):
+                pass
+            try:
+                import ast
+                parsed = ast.literal_eval(value)
+                if isinstance(parsed, dict):
+                    return parsed
+            except (ValueError, SyntaxError):
+                pass
+        return None
+
     def _format_api_data(self, data: List[Dict[str, Any]]) -> str:
-        
+
         output_lines = []
-        
+
         # Map of API data types to formatted sections
         type_map = {
             1: "vulnerable parameters",
@@ -588,8 +685,8 @@ class SQLMapAPIRunner:
             15: "schema",
             16: "count",
             17: "dump table",
-            18: "dump",
-            19: "search",
+            18: "search",
+            19: "sql query",
             20: "SQL query",
             21: "common tables",
             22: "common columns",
@@ -604,15 +701,28 @@ class SQLMapAPIRunner:
         
         # Process each data entry by type
         for entry in data:
+            if not isinstance(entry, dict):
+                continue
             entry_type = entry.get("type")
             value = entry.get("value")
             
             if entry_type == 1:  # Vulnerable parameters
                 output_lines.append("[+] the following parameters are vulnerable to SQL injection:")
-                for vuln in value:
-                    output_lines.append(f"    Parameter: {vuln.get('parameter')} ({vuln.get('place')})")
-                    if vuln.get("payload"):
-                        output_lines.append(f"    Payload: {vuln.get('payload')}")
+                vuln_list = self._ensure_list(value)
+                for vuln in vuln_list:
+                    if isinstance(vuln, dict):
+                        output_lines.append(f"    Parameter: {vuln.get('parameter')} ({vuln.get('place')})")
+                        if vuln.get("payload"):
+                            output_lines.append(f"    Payload: {vuln.get('payload')}")
+                    elif isinstance(vuln, str):
+                        # Try to parse string repr of dict
+                        parsed = self._ensure_dict(vuln)
+                        if parsed and isinstance(parsed, dict) and parsed.get('parameter'):
+                            output_lines.append(f"    Parameter: {parsed.get('parameter')} ({parsed.get('place')})")
+                            if parsed.get("payload"):
+                                output_lines.append(f"    Payload: {parsed.get('payload')}")
+                        else:
+                            output_lines.append(f"    {vuln}")
                 
             elif entry_type == 2:  # DBMS
                 output_lines.append(f"[+] back-end DBMS: {value}")
@@ -627,53 +737,91 @@ class SQLMapAPIRunner:
                 output_lines.append(f"[+] is DBA: {'yes' if value else 'no'}")
                 
             elif entry_type == 12:  # Databases
-                output_lines.append(f"[+] available databases [{len(value)}]:")
-                for db in value:
+                db_list = self._ensure_list(value)
+                output_lines.append(f"[+] available databases [{len(db_list)}]:")
+                for db in db_list:
                     output_lines.append(f"[*] {db}")
                     
             elif entry_type == 13:  # Tables
-                output_lines.append(f"[+] Database: {list(value.keys())[0]}")
-                tables = list(value.values())[0]
-                output_lines.append(f"[+] tables [{len(tables)}]:")
-                for i, table in enumerate(tables):
-                    output_lines.append(f"[{i+1}] {table}")
-                    
+                value_dict = self._ensure_dict(value)
+                if value_dict:
+                    for db_name, table_list in value_dict.items():
+                        output_lines.append(f"[+] Database: {db_name}")
+                        tbl_list = self._ensure_list(table_list)
+                        output_lines.append(f"[+] tables [{len(tbl_list)}]:")
+                        for i, table in enumerate(tbl_list):
+                            output_lines.append(f"[{i+1}] {table}")
+                else:
+                    output_lines.append(f"[+] tables: {value}")
+
             elif entry_type == 14:  # Columns
-                for db, tables in value.items():
+                value_dict = self._ensure_dict(value)
+                if value_dict:
+                    for db, tables in value_dict.items():
+                        output_lines.append(f"[+] Database: {db}")
+                        tables_dict = self._ensure_dict(tables) if not isinstance(tables, dict) else tables
+                        if tables_dict:
+                            for table, columns in tables_dict.items():
+                                output_lines.append(f"[+] Table: {table}")
+                                col_list = self._ensure_list(columns)
+                                output_lines.append(f"[+] columns [{len(col_list)}]:")
+                                for i, column in enumerate(col_list):
+                                    output_lines.append(f"[{i+1}] {column}")
+                else:
+                    output_lines.append(f"[+] columns: {value}")
+
+            elif entry_type == 17:  # Dump table (CONTENT_TYPE.DUMP_TABLE)
+                # sqlmap API returns column-oriented data:
+                # {"__infos__": {"db": "x", "table": "y", "count": N},
+                #  "col1": {"length": L, "values": [...]}, ...}
+                value_dict = self._ensure_dict(value)
+                if value_dict:
+                    infos = value_dict.get("__infos__", {})
+                    db = infos.get("db", "unknown")
+                    table = infos.get("table", "unknown")
+                    count = infos.get("count", 0)
+
                     output_lines.append(f"[+] Database: {db}")
-                    for table, columns in tables.items():
-                        output_lines.append(f"[+] Table: {table}")
-                        output_lines.append(f"[+] columns [{len(columns)}]:")
-                        for i, column in enumerate(columns):
-                            output_lines.append(f"[{i+1}] {column}")
-                            
-            elif entry_type == 18:  # Dump
-                for db, tables in value.items():
-                    output_lines.append(f"[+] Database: {db}")
-                    for table, data in tables.items():
-                        output_lines.append(f"[+] Table: {table}")
-                        output_lines.append(f"[+] [{len(data.get('entries', []))} entries]")
-                        columns = data.get("columns", [])
-                        entries = data.get("entries", [])
-                        
-                        # Create table header
-                        header = "| " + " | ".join(columns) + " |"
-                        separator = "+" + "+".join(["-" * (len(col) + 2) for col in columns]) + "+"
+                    output_lines.append(f"[+] Table: {table}")
+                    output_lines.append(f"[+] [{count} entries]")
+
+                    # Extract column names (skip __infos__)
+                    columns = [k for k in value_dict.keys() if k != "__infos__"]
+                    if columns and count > 0:
+                        # Calculate column widths for ASCII table
+                        col_widths = {}
+                        for col in columns:
+                            col_data = value_dict[col]
+                            values = col_data.get("values", []) if isinstance(col_data, dict) else []
+                            max_val_len = max((len(str(v)) for v in values), default=0)
+                            col_widths[col] = max(len(col), max_val_len)
+
+                        # Build ASCII table
+                        separator = "+" + "+".join("-" * (col_widths[c] + 2) for c in columns) + "+"
+                        header = "| " + " | ".join(c.ljust(col_widths[c]) for c in columns) + " |"
                         output_lines.append(separator)
                         output_lines.append(header)
                         output_lines.append(separator)
-                        
-                        # Add data rows
-                        for entry in entries:
-                            row = "| " + " | ".join(str(entry.get(col, "NULL")) for col in columns) + " |"
-                            output_lines.append(row)
+
+                        for i in range(count):
+                            cells = []
+                            for col in columns:
+                                col_data = value_dict[col]
+                                values = col_data.get("values", []) if isinstance(col_data, dict) else []
+                                cell_val = str(values[i]) if i < len(values) else "NULL"
+                                cells.append(cell_val.ljust(col_widths[col]))
+                            output_lines.append("| " + " | ".join(cells) + " |")
                         output_lines.append(separator)
+                else:
+                    output_lines.append(f"[+] dump: {value}")
             
             elif entry_type == 24:  # Common tables
-                output_lines.append(f"[+] found common tables: {', '.join(value)}")
-                
+                table_list = self._ensure_list(value)
+                output_lines.append(f"[+] found common tables: {', '.join(str(t) for t in table_list)}")
+
             elif entry_type == 25:  # Common columns
-                output_lines.append(f"[+] found common columns: {', '.join(value)}")
+                col_list = self._ensure_list(value)
+                output_lines.append(f"[+] found common columns: {', '.join(str(c) for c in col_list)}")
             
             # Add more type handlers as needed
         
@@ -692,23 +840,40 @@ class SQLMapAPIRunner:
         
         # Extract request file from options if present
         request_file_path = request_file
+        is_log_file = False  # True for Burp XML (-l), False for raw HTTP (-r)
         if isinstance(options, list):
-            for opt in options:
-                if opt.startswith('-r '):
+            for i, opt in enumerate(options):
+                if opt == '-r' and i + 1 < len(options):
+                    request_file_path = options[i + 1]
+                    is_log_file = False
+                    break
+                elif opt.startswith('-r '):
                     request_file_path = opt[3:].strip()
+                    is_log_file = False
+                    break
+                elif opt == '-l' and i + 1 < len(options):
+                    request_file_path = options[i + 1]
+                    is_log_file = True
                     break
                 elif opt.startswith('--request-file='):
                     request_file_path = opt.split('=', 1)[1].strip()
+                    is_log_file = False
                     break
-        elif isinstance(options, str) and ('-r ' in options or '--request-file=' in options):
-            # Extract from string - this is more complex but handle basic cases
+        elif isinstance(options, str) and ('-r ' in options or '--request-file=' in options or '-l ' in options):
+            # Extract from string
             parts = options.split()
             for i, part in enumerate(parts):
                 if part == '-r' and i + 1 < len(parts):
                     request_file_path = parts[i + 1]
+                    is_log_file = False
+                    break
+                elif part == '-l' and i + 1 < len(parts):
+                    request_file_path = parts[i + 1]
+                    is_log_file = True
                     break
                 elif part.startswith('--request-file='):
                     request_file_path = part.split('=', 1)[1]
+                    is_log_file = False
                     break
         
         # Build command string for logging
@@ -718,8 +883,19 @@ class SQLMapAPIRunner:
             command_str = f"sqlmap -u {target_url}"
             
         if isinstance(options, list):
-            # Filter out the -r option since we handle it separately
-            filtered_options = [opt for opt in options if not (opt.startswith('-r ') or opt.startswith('--request-file='))]
+            # Filter out the -r/-l option and its argument since we handle it separately
+            filtered_options = []
+            skip_next = False
+            for opt in options:
+                if skip_next:
+                    skip_next = False
+                    continue
+                if opt in ('-r', '-l'):
+                    skip_next = True
+                    continue
+                if opt.startswith('-r ') or opt.startswith('--request-file='):
+                    continue
+                filtered_options.append(opt)
             if filtered_options:
                 command_str += " " + " ".join(filtered_options)
         elif isinstance(options, str):
@@ -730,7 +906,7 @@ class SQLMapAPIRunner:
             
         print_info("Scanning target...")
         
-        if not self._start_scan(task_id, target_url, options, request_file_path):
+        if not self._start_scan(task_id, target_url, options, request_file_path, is_log_file=is_log_file):
             self._delete_task(task_id)
             return None
             

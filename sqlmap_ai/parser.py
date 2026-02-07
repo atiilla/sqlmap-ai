@@ -132,7 +132,8 @@ def extract_sqlmap_info(output: str) -> Dict[str, Any]:
 def extract_dumped_data(output: str) -> Dict[str, Dict[str, Any]]:
     extracted_data = {}
     # Updated regex to handle both formats: "Database: xxx" and "[+] Database: xxx"
-    table_dump_pattern = r"(?:\[\+\]\s+)?Database:\s+([^\n]+).*?(?:\[\+\]\s+)?Table:\s+([^\n]+).*?(?:\[\+\]\s+)?\[(\d+)\s+entr(?:y|ies)\].*?(\+[-+]+\+\n\|.*?\+[-+]+\+)"
+    # Uses greedy .+ for table data to capture all rows through the final separator
+    table_dump_pattern = r"(?:\[\+\]\s+)?Database:\s+([^\n]+).*?(?:\[\+\]\s+)?Table:\s+([^\n]+).*?(?:\[\+\]\s+)?\[(\d+)\s+entr(?:y|ies)\].*?(\+[-+]+\+\n\|.+\+[-+]+\+)"
     table_dumps = re.findall(table_dump_pattern, output, re.DOTALL)
     for db_name, table_name, entry_count, table_data in table_dumps:
         db_name = db_name.strip()
