@@ -61,11 +61,13 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#option-a-groq-recommended-fastest">Option A: Groq (Recommended - Fastest)</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#option-b-openai">Option B: OpenAI</a>
+    <li class="toctree-l3"><a class="reference internal" href="#option-b-deepseek-affordable">Option B: DeepSeek (Affordable)</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#option-c-anthropic-claude">Option C: Anthropic (Claude)</a>
+    <li class="toctree-l3"><a class="reference internal" href="#option-c-openai">Option C: OpenAI</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#option-d-ollama-local-ai-privacy-focused">Option D: Ollama (Local AI - Privacy Focused)</a>
+    <li class="toctree-l3"><a class="reference internal" href="#option-d-anthropic-claude">Option D: Anthropic (Claude)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#option-e-ollama-local-ai-privacy-focused">Option E: Ollama (Local AI - Privacy Focused)</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#ollama-model-selection">Ollama Model Selection</a>
     </li>
@@ -170,7 +172,15 @@ sqlmap-ai --install-check
 <pre class="codehilite"><code class="language-bash">GROQ_API_KEY=your_groq_api_key_here
 </code></pre>
 
-<h3 id="option-b-openai">Option B: OpenAI<a class="headerlink" href="#option-b-openai" title="Permanent link">&para;</a></h3>
+<h3 id="option-b-deepseek-affordable">Option B: DeepSeek (Affordable)<a class="headerlink" href="#option-b-deepseek-affordable" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Get an API key from <a href="https://platform.deepseek.com">https://platform.deepseek.com</a></li>
+<li>Add to your <code>.env</code> file:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">DEEPSEEK_API_KEY=your_deepseek_api_key_here
+</code></pre>
+
+<h3 id="option-c-openai">Option C: OpenAI<a class="headerlink" href="#option-c-openai" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Get an API key from <a href="https://platform.openai.com">https://platform.openai.com</a></li>
 <li>Add to your <code>.env</code> file:</li>
@@ -178,7 +188,7 @@ sqlmap-ai --install-check
 <pre class="codehilite"><code class="language-bash">OPENAI_API_KEY=your_openai_api_key_here
 </code></pre>
 
-<h3 id="option-c-anthropic-claude">Option C: Anthropic (Claude)<a class="headerlink" href="#option-c-anthropic-claude" title="Permanent link">&para;</a></h3>
+<h3 id="option-d-anthropic-claude">Option D: Anthropic (Claude)<a class="headerlink" href="#option-d-anthropic-claude" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Get an API key from <a href="https://console.anthropic.com">https://console.anthropic.com</a></li>
 <li>Add to your <code>.env</code> file:</li>
@@ -186,7 +196,7 @@ sqlmap-ai --install-check
 <pre class="codehilite"><code class="language-bash">ANTHROPIC_API_KEY=your_anthropic_api_key_here
 </code></pre>
 
-<h3 id="option-d-ollama-local-ai-privacy-focused">Option D: Ollama (Local AI - Privacy Focused)<a class="headerlink" href="#option-d-ollama-local-ai-privacy-focused" title="Permanent link">&para;</a></h3>
+<h3 id="option-e-ollama-local-ai-privacy-focused">Option E: Ollama (Local AI - Privacy Focused)<a class="headerlink" href="#option-e-ollama-local-ai-privacy-focused" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Install Ollama: <a href="https://ollama.ai/download">https://ollama.ai/download</a></li>
 <li>Start Ollama service:</li>
@@ -257,6 +267,13 @@ sqlmap-ai --list-ollama-models
 <td>Fastest</td>
 <td>Cloud</td>
 <td>Free tier available</td>
+</tr>
+<tr>
+<td><strong>DeepSeek</strong></td>
+<td>API Key</td>
+<td>Fast</td>
+<td>Cloud</td>
+<td>Affordable</td>
 </tr>
 <tr>
 <td><strong>OpenAI</strong></td>
