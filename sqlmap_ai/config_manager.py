@@ -35,6 +35,7 @@ class SecurityConfig:
     enable_audit_logging: bool = True
     safe_mode: bool = True
     require_confirmation: bool = True
+    allow_private_networks: bool = True
 
 
 @dataclass

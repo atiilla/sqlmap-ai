@@ -27,6 +27,7 @@ class SecurityConfig:
     enable_audit_logging: bool = True
     require_confirmation: bool = True
     safe_mode: bool = True
+    allow_private_networks: bool = True
 
 
 @dataclass
@@ -94,9 +95,10 @@ class RateLimiter:
 
 
 class InputValidator:
-    
-    
-    def __init__(self):
+
+
+    def __init__(self, allow_private_networks: bool = True):
+        self.allow_private_networks = allow_private_networks
         self.dangerous_patterns = [
             r'[;|`]',   # Command injection (removed & as it's normal in URLs)
             r'\.\./',   # Path traversal
@@ -152,8 +154,8 @@ class InputValidator:
         if not parsed.hostname:
             return False, "URL must include a hostname"
         
-        # Check for localhost/private IPs in production
-        if self._is_local_address(parsed.hostname):
+        # Check for localhost/private IPs (allow when configured for pentesting)
+        if not self.allow_private_networks and self._is_local_address(parsed.hostname):
             return False, "Local/private addresses are not allowed for security reasons"
         
         return True, None
@@ -394,7 +396,9 @@ class SecurityManager:
             self.config.max_requests_per_minute,
             self.config.max_requests_per_hour
         )
-        self.input_validator = InputValidator()
+        self.input_validator = InputValidator(
+            allow_private_networks=self.config.allow_private_networks
+        )
         self.audit_logger = AuditLogger() if self.config.enable_audit_logging else None
         self.encryption_manager = EncryptionManager()
         self.active_scans: Set[str] = set()

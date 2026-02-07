@@ -46,23 +46,51 @@ class TestInputValidator:
             assert valid, f"URL {url} should be valid, got error: {error}"
     
     def test_invalid_url_validation(self):
-        
+
         validator = InputValidator()
-        
+
         invalid_urls = [
             "",  # Empty
             "not_a_url",  # Not a URL
             "ftp://example.com/file",  # Wrong scheme
-            "http://localhost/test",  # Localhost
-            "http://127.0.0.1/admin",  # Localhost IP
-            "http://192.168.1.1/app",  # Private IP
             "javascript:alert('xss')",  # JavaScript
             "data:text/html,<script>alert('xss')</script>"  # Data URL
         ]
-        
+
         for url in invalid_urls:
             valid, error = validator.validate_url(url)
             assert not valid, f"URL {url} should be invalid"
+            assert error is not None
+
+    def test_private_networks_allowed_by_default(self):
+        """Private/local IPs should be allowed by default for pentesting."""
+        validator = InputValidator()
+
+        private_urls = [
+            "http://192.168.1.1/app",
+            "http://10.0.0.1/admin",
+            "http://172.16.0.1/test",
+            "http://localhost/test",
+            "http://127.0.0.1/admin",
+        ]
+
+        for url in private_urls:
+            valid, error = validator.validate_url(url)
+            assert valid, f"URL {url} should be valid with allow_private_networks=True, got error: {error}"
+
+    def test_private_networks_blocked_when_disabled(self):
+        """Private/local IPs should be blocked when allow_private_networks=False."""
+        validator = InputValidator(allow_private_networks=False)
+
+        private_urls = [
+            "http://localhost/test",
+            "http://127.0.0.1/admin",
+            "http://192.168.1.1/app",
+        ]
+
+        for url in private_urls:
+            valid, error = validator.validate_url(url)
+            assert not valid, f"URL {url} should be invalid with allow_private_networks=False"
             assert error is not None
     
     def test_sqlmap_options_validation(self):
